@@ -19,10 +19,10 @@ class HomeScreen extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: const [
-            _HomeTile(icon: Icons.people_outline, label: 'Members', route: '/members'),
-            _HomeTile(icon: Icons.chat_bubble_outline, label: 'Chats', route: '/chats'),
-            _HomeTile(icon: Icons.calendar_month_outlined, label: 'Requests', route: '/requests'),
-            _HomeTile(icon: Icons.bar_chart_outlined, label: 'Sessions', route: '/sessions'),
+            _HomeTile(icon: Icons.people_outline, label: 'Members', dest: _Dest.members),
+            _HomeTile(icon: Icons.chat_bubble_outline, label: 'Chats', dest: _Dest.chats),
+            _HomeTile(icon: Icons.calendar_month_outlined, label: 'Requests', dest: _Dest.requests),
+            _HomeTile(icon: Icons.bar_chart_outlined, label: 'Sessions', dest: _Dest.sessions),
           ],
         ),
       ),
@@ -30,6 +30,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
+enum _Dest { members, chats, requests, sessions }
 
 class _HealthFab extends StatefulWidget {
   const _HealthFab({required this.user});
@@ -70,7 +72,11 @@ class _HealthFabState extends State<_HealthFab> {
     return FloatingActionButton.extended(
       onPressed: () => _ping(context),
       icon: _loading
-          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
           : const Icon(Icons.wifi_tethering),
       label: const Text('Ping Server'),
     );
@@ -78,11 +84,11 @@ class _HealthFabState extends State<_HealthFab> {
 }
 
 class _HomeTile extends StatelessWidget {
-  const _HomeTile({required this.icon, required this.label, required this.route});
+  const _HomeTile({required this.icon, required this.label, required this.dest});
 
   final IconData icon;
   final String label;
-  final String route;
+  final _Dest dest;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +96,7 @@ class _HomeTile extends StatelessWidget {
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {},
+        onTap: () => _navigate(context),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -107,5 +113,17 @@ class _HomeTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _navigate(BuildContext context) {
+    switch (dest) {
+      case _Dest.chats:
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const ChatListPage()));
+      case _Dest.members:
+      case _Dest.requests:
+      case _Dest.sessions:
+        break;
+    }
   }
 }

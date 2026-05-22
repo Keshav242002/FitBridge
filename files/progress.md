@@ -14,6 +14,24 @@
 
 ---
 
+## 2026-05-22 14:30 — Phase 3 complete: real-time chat
+
+- ChatService: 1.5s polling of GET /messages?since=, exposes Stream<Message> for ChatBloc subscription
+- ChatBloc: sealed events (LoadHistory, SendMessage, MessageReceived, MarkRead, PeerStartedTyping, PeerStoppedTyping) + sealed states (ChatInitial/Loading/Loaded/Error). Optimistic send with temp ID, replace on server ack. Auto mark-read on arrival.
+- ChatListBloc: loads single Aarav↔DK row with last message preview, unread count, relative timestamp
+- ConversationPage: in shared/lib/features/chat/presentation/. BlocProvider creates ChatBloc + ChatService. Uses BlocConsumer.
+- MessageBubble: left/right alignment, role-colored, status ticks (spinner=sending, ✓=sent, ✓✓=read), system bubble variant
+- TypingIndicator: 3-dot bouncing animation via AnimationController
+- Quick reply chips: "Got it 👍", "Can we talk at 6?", "Share plan?"
+- Empty state: "No messages yet. Start the conversation." + "Say hi" CTA
+- Pull-to-refresh, auto-scroll to bottom on new message, sticky multiline input
+- Both apps wired: Guru Chat tile → ConversationPage, Trainer Chats tile → ChatListPage → ConversationPage
+- Unit test: shared/test/message_test.dart — 4/4 passing (round-trip, system msg, all statuses, copyWith)
+- dart analyze: No issues on all 3 packages
+- Decision: polling-only (no SSE client) — simpler, fewer classes, same 1.5s latency. Documented in ConversationPage comment.
+- Files: shared/lib/services/chat_service.dart, shared/lib/features/chat/**, guru_app/lib/features/home/**, trainer_app/lib/features/home/**, shared/test/message_test.dart
+- Next: Phase 4 — Schedule
+
 ## 2026-05-22 13:00 — Phase 2 complete: token server + ApiClient
 
 - token_server: src/index.js (Express :8787), src/store.js (in-memory + debounced JSON), src/hms.js (JWT/fallback), 5 route files (events, messages, call_requests, session_logs, token)

@@ -19,21 +19,21 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.chat_bubble_outline,
               label: 'Chat',
               subtitle: 'Message your trainer',
-              route: '/chat',
+              destination: _Dest.chat,
             ),
             SizedBox(height: 16),
             _HomeCard(
               icon: Icons.calendar_month_outlined,
               label: 'Schedule',
               subtitle: 'Request a video call',
-              route: '/schedule',
+              destination: _Dest.schedule,
             ),
             SizedBox(height: 16),
             _HomeCard(
               icon: Icons.bar_chart_outlined,
               label: 'Sessions',
               subtitle: 'View past sessions',
-              route: '/sessions',
+              destination: _Dest.sessions,
             ),
           ],
         ),
@@ -42,18 +42,20 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+enum _Dest { chat, schedule, sessions }
+
 class _HomeCard extends StatelessWidget {
   const _HomeCard({
     required this.icon,
     required this.label,
     required this.subtitle,
-    required this.route,
+    required this.destination,
   });
 
   final IconData icon;
   final String label;
   final String subtitle;
-  final String route;
+  final _Dest destination;
 
   @override
   Widget build(BuildContext context) {
@@ -68,8 +70,19 @@ class _HomeCard extends StatelessWidget {
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: () => _navigate(context),
       ),
     );
+  }
+
+  void _navigate(BuildContext context) {
+    switch (destination) {
+      case _Dest.chat:
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const ChatListPage()));
+      case _Dest.schedule:
+      case _Dest.sessions:
+        break;
+    }
   }
 }

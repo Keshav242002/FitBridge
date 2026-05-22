@@ -7,6 +7,9 @@ const { emit } = require('./events');
 
 const router = express.Router();
 
+// In-memory typing state: { chatId: { userId: expiresAt } }
+const typingState = {};
+
 // POST /messages
 router.post('/', (req, res) => {
   const { chatId, senderId, receiverId, text } = req.body || {};
@@ -40,6 +43,26 @@ router.get('/', (req, res) => {
   const { chatId, since } = req.query;
   if (!chatId) return res.status(400).json({ error: 'chatId required' });
   return res.json(store.getMessages({ chatId, since }));
+});
+
+// POST /messages/typing — {chatId, userId}  (3-second TTL, no persistence)
+router.post('/typing', (req, res) => {
+  const { chatId, userId } = req.body || {};
+  if (!chatId || !userId) return res.status(400).json({ error: 'chatId and userId required' });
+  if (!typingState[chatId]) typingState[chatId] = {};
+  typingState[chatId][userId] = Date.now() + 3000;
+  return res.json({ ok: true });
+});
+
+// GET /messages/typing?chatId=... — returns [{userId}] for currently-typing users
+router.get('/typing', (req, res) => {
+  const { chatId } = req.query;
+  if (!chatId) return res.status(400).json({ error: 'chatId required' });
+  const now = Date.now();
+  const active = Object.entries(typingState[chatId] || {})
+    .filter(([, exp]) => exp > now)
+    .map(([userId]) => ({ userId }));
+  return res.json(active);
 });
 
 // POST /messages/read-batch — {ids: string[], readerId: string}

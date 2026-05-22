@@ -8,6 +8,16 @@ This file is required evidence of AI-native workflow. Every meaningful use of an
 
 ---
 
+### Entry 6 — Phase 3: real-time chat end-to-end (ChatService + ChatBloc + UI)
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 14:30
+- **Phase**: 3
+- **Intent**: Generate the entire chat feature: polling ChatService, ChatBloc with sealed events/states, ChatListBloc, ConversationPage, MessageBubble, TypingIndicator, ChatListPage, and all wiring into both apps.
+- **Prompt summary**: Asked to implement Phase 3 from task.md and phase_3_chat.md: thin ChatService with 1.5s polling fallback, ChatBloc (optimistic send + auto mark-read + typing state), all UI (bubbles, ticks, typing dots, quick replies, empty state), ChatListBloc for the single conversation row. Put everything in shared to avoid duplication.
+- **Output use**: Adapted. Two issues found during generation: (1) `typing_indicator.dart` used `__` double-underscore in builder lambda — IDE lint flagged it, changed to `_`; (2) `conversation_page.dart` had an unused `models/message.dart` import — removed. Also added braces to the `for` loop in `dispose()` per lints. Final `dart analyze`: No issues on all 3 packages.
+- **Commit**: `feat: real-time chat with status ticks and typing indicator`
+- **Notes**: Chose polling-only over SSE client — api_contract.md explicitly notes "if you can avoid SSE entirely and just poll, that's even better." The `ChatService.startPolling()` tracks a `_since` cursor advancing per message so the poll window never grows stale. Optimistic send uses a `tmp_` prefixed ID that gets replaced in-place when the server ack arrives. `MarkRead` is called both on screen open (via BlocListener) and on each `MessageReceived` event for the current user.
+
 ### Entry 1 — Phase-wise plan from spec docs
 - **Tool**: Claude Code
 - **Time**: ~2026-05-22 10:00

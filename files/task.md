@@ -53,10 +53,10 @@
 
 ## Phase 3 — Chat (1:45 – 3:00)
 
-- [ ] **3.1** `ChatService` in `shared/lib/services/chat_service.dart`. Uses `ApiClient` for sending; subscribes to `/events` SSE for incoming. Falls back to 1.5s polling of `GET /messages?since=...` if SSE not available.
-- [ ] **3.2** `ChatBloc` (per conversation): events `LoadHistory`, `SendMessage`, `MessageReceived`, `MarkRead`, `PeerTyping`. States `ChatInitial`, `ChatLoading`, `ChatLoaded(messages, isPeerTyping)`, `ChatError`.
-- [ ] **3.3** Chat list screen (`ChatListBloc`): shows the single Aarav↔DK conversation with last message preview, unread count, timestamp ("5m ago" via `intl`).
-- [ ] **3.4** Conversation screen UI:
+- [x] **3.1** `ChatService` in `shared/lib/services/chat_service.dart`. Uses `ApiClient` for sending; subscribes to `/events` SSE for incoming. Falls back to 1.5s polling of `GET /messages?since=...` if SSE not available.
+- [x] **3.2** `ChatBloc` (per conversation): events `LoadHistory`, `SendMessage`, `MessageReceived`, `MarkRead`, `PeerTyping`. States `ChatInitial`, `ChatLoading`, `ChatLoaded(messages, isPeerTyping)`, `ChatError`.
+- [x] **3.3** Chat list screen (`ChatListBloc`): shows the single Aarav↔DK conversation with last message preview, unread count, timestamp ("5m ago" via `intl`).
+- [x] **3.4** Conversation screen UI:
   - Bubble widget aligns left (received) / right (sent) with role color.
   - Status ticks: single ✓ = sent, double ✓✓ = read.
   - Typing indicator dot animation; simulate by sending a small `POST /messages/typing` event with 400–800ms peer-side delay before the real message lands.
@@ -64,11 +64,11 @@
   - Auto-scroll to bottom on new message.
   - Quick reply chips: "Got it 👍", "Can we talk at 6?", "Share plan?".
   - Sticky multiline input with send icon.
-- [ ] **3.5** Mark-read: when screen is open + visible, send `POST /messages/:id/read` for all unread. Peer sees status change to double tick.
-- [ ] **3.6** Empty state: "No messages yet. Start the conversation." with CTA "Say hi".
-- [ ] **3.7** Test: send from Guru → verify shows up in Trainer within 2s.
-- [ ] **3.8** Unit test: `message_test.dart` — JSON round-trip.
-- [ ] **3.9** Commit: `feat: real-time chat with status ticks and typing indicator`. AI_LEDGER entry.
+- [x] **3.5** Mark-read: when screen is open + visible, send `POST /messages/:id/read` for all unread. Peer sees status change to double tick.
+- [x] **3.6** Empty state: "No messages yet. Start the conversation." with CTA "Say hi".
+- [-] **3.7** Test: send from Guru → verify shows up in Trainer within 2s. (manual test — verify during Phase 7 end-to-end run)
+- [x] **3.8** Unit test: `message_test.dart` — JSON round-trip. 4/4 passing.
+- [~] **3.9** Commit: `feat: real-time chat with status ticks and typing indicator`. AI_LEDGER entry.
 
 ---
 
