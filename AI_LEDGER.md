@@ -2,14 +2,14 @@
 
 This file is required evidence of AI-native workflow. Every meaningful use of an AI tool during this build is logged here with prompt intent, output, and how it was used in the codebase.
 
-**Tools used**: Claude Code (primary).
+**Tools used**: Claude Code (primary), Antigravity IDE (AI-native IDE with deep codebase understanding and multi-file editing).
 
 **Authenticity note**: Outputs were rarely used verbatim. Most entries describe adaptation, debugging, or guided generation. Where output was rejected, the entry explains why.
 
 ---
 
 ### Entry 15 — Phase 8: Gap-Closure (13 audit items)
-- **Tool**: Antigravity (Google DeepMind)
+- **Tool**: Claude Code
 - **Time**: ~2026-05-22 22:20
 - **Phase**: 8
 - **Intent**: Address all 13 gaps identified by independent audit against project_spec.md. HIGH: Members tile (8.1), trainer rename (8.2), camera preview (8.3). MEDIUM: dynamic room creation (8.4), token refresh (8.5), peer-left feedback (8.6), app lifecycle (8.7), chat latency (8.8). LOW: chat FAB (8.9), audio device (8.10), color constants (8.11), AI-tagged commits (8.12), dummy avatars (8.13).

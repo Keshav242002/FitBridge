@@ -110,10 +110,11 @@ class CallService implements HMSUpdateListener, HMSPreviewListener {
 
   Future<void> join({required String token, required String userName}) async {
     Log.rtc('joining as $userName');
-    await _ensureBuilt();
     if (_previewing) {
-      await stopPreview();
+      _previewing = false;
+      _sdk.removePreviewListener(listener: this);
     }
+    await _ensureBuilt();
     _sdk.addUpdateListener(listener: this);
     await _sdk.join(config: HMSConfig(authToken: token, userName: userName));
   }

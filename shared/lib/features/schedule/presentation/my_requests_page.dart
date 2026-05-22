@@ -8,6 +8,7 @@ import '../../../services/schedule_service.dart';
 import '../../../widgets/dev_panel.dart';
 import '../../../widgets/error_retry.dart';
 import '../../call/presentation/pre_join_page.dart';
+import 'schedule_screen.dart';
 import '../bloc/my_requests_bloc.dart';
 import '../bloc/my_requests_event.dart';
 import '../bloc/my_requests_state.dart';
@@ -34,6 +35,15 @@ class _MyRequestsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('My Requests')),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'new_request_fab',
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const ScheduleScreen(),
+          ),
+        ),
+        child: const Icon(Icons.add),
+      ),
       body: BlocBuilder<MyRequestsBloc, MyRequestsState>(
         builder: (context, state) => switch (state) {
           MyRequestsLoading() => const Center(child: CircularProgressIndicator()),

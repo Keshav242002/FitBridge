@@ -85,7 +85,7 @@ class _HomeCard extends StatelessWidget {
             .push(MaterialPageRoute<void>(builder: (_) => const ChatListPage()));
       case _Dest.schedule:
         Navigator.of(context)
-            .push(MaterialPageRoute<void>(builder: (_) => const ScheduleScreen()));
+            .push(MaterialPageRoute<void>(builder: (_) => const MyRequestsPage()));
       case _Dest.sessions:
         Navigator.of(context).push(
           MaterialPageRoute<void>(

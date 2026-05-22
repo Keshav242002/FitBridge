@@ -1,12 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:shared/shared.dart';
+import 'package:wtf_shared/wtf_shared.dart';
 
 void main() {
-  test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
+  test('shared library exports are accessible', () {
+    expect(WtfColors.trainerPrimary.toARGB32(), 0xFFE50914);
+    expect(WtfColors.guruPrimary.toARGB32(), 0xFF1769E0);
   });
 }

@@ -238,40 +238,43 @@ class _Controls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<CallBloc>();
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [Colors.black87, Colors.transparent],
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [Colors.black87, Colors.transparent],
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _ControlButton(
-            icon: state.isMicOn ? Icons.mic : Icons.mic_off,
-            label: state.isMicOn ? 'Mute' : 'Unmute',
-            onTap: () => bloc.add(const ToggleMic()),
-          ),
-          _ControlButton(
-            icon: state.isVideoOn ? Icons.videocam : Icons.videocam_off,
-            label: state.isVideoOn ? 'Camera' : 'No cam',
-            onTap: () => bloc.add(const ToggleVideo()),
-          ),
-          _ControlButton(
-            icon: Icons.flip_camera_ios,
-            label: 'Flip',
-            onTap: () => bloc.add(const FlipCamera()),
-          ),
-          _ControlButton(
-            icon: Icons.call_end,
-            label: 'End',
-            color: Colors.red,
-            onTap: () => bloc.add(const EndCall()),
-          ),
-        ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _ControlButton(
+              icon: state.isMicOn ? Icons.mic : Icons.mic_off,
+              label: state.isMicOn ? 'Mute' : 'Unmute',
+              onTap: () => bloc.add(const ToggleMic()),
+            ),
+            _ControlButton(
+              icon: state.isVideoOn ? Icons.videocam : Icons.videocam_off,
+              label: state.isVideoOn ? 'Camera' : 'No cam',
+              onTap: () => bloc.add(const ToggleVideo()),
+            ),
+            _ControlButton(
+              icon: Icons.flip_camera_ios,
+              label: 'Flip',
+              onTap: () => bloc.add(const FlipCamera()),
+            ),
+            _ControlButton(
+              icon: Icons.call_end,
+              label: 'End',
+              color: Colors.red,
+              onTap: () => bloc.add(const EndCall()),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -293,20 +296,20 @@ class _ControlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? Colors.white;
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: (color ?? Colors.white).withValues(alpha: 0.15),
-            child: Icon(icon, color: c, size: 24),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          onPressed: onTap,
+          icon: Icon(icon, color: c, size: 24),
+          style: IconButton.styleFrom(
+            backgroundColor: c.withValues(alpha: 0.15),
+            fixedSize: const Size(56, 56),
           ),
-          const SizedBox(height: 6),
-          Text(label, style: TextStyle(color: c, fontSize: 11)),
-        ],
-      ),
+        ),
+        const SizedBox(height: 6),
+        Text(label, style: TextStyle(color: c, fontSize: 11)),
+      ],
     );
   }
 }

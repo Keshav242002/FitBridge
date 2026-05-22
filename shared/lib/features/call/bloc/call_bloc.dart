@@ -139,23 +139,43 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     final s = state;
     if (s is! CallPreJoin) return;
     emit(const CallJoining());
-    await callService.join(token: s.token, userName: s.userName);
-    // _Joined event will be fired by stream listener on onJoin callback
+
+    // Fetch a fresh token — preview already consumed the original one
+    final hmsRole = s.role == UserRole.trainer.name ? 'host' : 'guest';
+    final res = await api.post('/token', body: {
+      'userId': s.userId,
+      'role': hmsRole,
+      'callRequestId': s.callRequestId,
+    });
+
+    switch (res) {
+      case ApiSuccess(:final body):
+        final freshToken = (body as Map<String, dynamic>)['token'] as String;
+        // Listen for the onJoin callback BEFORE calling join
+        final joinFuture = callService.joinedStream.first;
+        await callService.join(token: freshToken, userName: s.userName);
+        // Wait for the SDK to confirm the join (onJoin callback)
+        await joinFuture.timeout(
+          const Duration(seconds: 15),
+          onTimeout: () => throw Exception('Join timed out'),
+        );
+        // Directly emit CallInCall here — no reliance on _Joined event
+        emit(CallInCall(
+          callRequestId: _pendingCallRequestId!,
+          memberId: _pendingMemberId!,
+          trainerId: _pendingTrainerId!,
+          userId: _pendingUserId!,
+          startedAt: DateTime.now(),
+        ));
+        _clearPending();
+      case ApiFailure(:final message):
+        emit(CallError(message: 'Failed to get call token: $message'));
+    }
   }
 
   void _onJoined(_Joined e, Emitter<CallState> emit) {
-    final s = state;
-    // Pull context from the last known pre-join state
-    if (s is! CallJoining) return;
-    // We stash the context in the bloc field during PrepareJoin
-    emit(CallInCall(
-      callRequestId: _pendingCallRequestId!,
-      memberId: _pendingMemberId!,
-      trainerId: _pendingTrainerId!,
-      userId: _pendingUserId!,
-      startedAt: DateTime.now(),
-    ));
-    _clearPending();
+    // No-op: CallInCall is now emitted directly in _onJoinNow.
+    // Keep handler registered so the subscription stays active.
   }
 
   Future<void> _onLeft(_Left e, Emitter<CallState> emit) async {
@@ -191,37 +211,88 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     }
   }
 
-  void _onToggleMic(ToggleMic e, Emitter<CallState> emit) {
+  Future<void> _onToggleMic(ToggleMic e, Emitter<CallState> emit) async {
     final s = state;
     if (s is CallPreJoin) {
-      callService.toggleMic();
-      emit(s.copyWith(isMicOn: !s.isMicOn));
+      try {
+        await callService.toggleMic();
+        emit(s.copyWith(isMicOn: !s.isMicOn));
+      } catch (err) {
+        Log.rtc('toggleMic error: $err');
+      }
     } else if (s is CallInCall) {
-      callService.toggleMic();
-      emit(s.copyWith(isMicOn: !s.isMicOn));
+      try {
+        await callService.toggleMic();
+        emit(s.copyWith(isMicOn: !s.isMicOn));
+      } catch (err) {
+        Log.rtc('toggleMic error: $err');
+      }
     }
   }
 
-  void _onToggleVideo(ToggleVideo e, Emitter<CallState> emit) {
+  Future<void> _onToggleVideo(ToggleVideo e, Emitter<CallState> emit) async {
     final s = state;
     if (s is CallPreJoin) {
-      callService.toggleVideo();
-      emit(s.copyWith(isVideoOn: !s.isVideoOn));
+      try {
+        await callService.toggleVideo();
+        emit(s.copyWith(isVideoOn: !s.isVideoOn));
+      } catch (err) {
+        Log.rtc('toggleVideo error: $err');
+      }
     } else if (s is CallInCall) {
-      callService.toggleVideo();
-      emit(s.copyWith(isVideoOn: !s.isVideoOn));
+      try {
+        await callService.toggleVideo();
+        emit(s.copyWith(isVideoOn: !s.isVideoOn));
+      } catch (err) {
+        Log.rtc('toggleVideo error: $err');
+      }
     }
   }
 
   Future<void> _onFlipCamera(FlipCamera e, Emitter<CallState> emit) async {
-    await callService.flipCamera();
+    try {
+      await callService.flipCamera();
+    } catch (err) {
+      Log.rtc('flipCamera error: $err');
+    }
   }
 
   Future<void> _onEndCall(EndCall e, Emitter<CallState> emit) async {
     final s = state;
     if (s is! CallInCall) return;
-    await callService.leave();
-    // _Left event fires via stream listener
+    try {
+      await callService.leave();
+    } catch (err) {
+      Log.rtc('leave error: $err');
+    }
+    // Emit CallEnded directly instead of waiting for _Left stream
+    final endedAt = DateTime.now();
+    final durationSec = endedAt.difference(s.startedAt).inSeconds;
+
+    final res = await api.post('/session-logs', body: {
+      'memberId': s.memberId,
+      'trainerId': s.trainerId,
+      'callRequestId': s.callRequestId,
+      'startedAt': s.startedAt.toIso8601String(),
+      'endedAt': endedAt.toIso8601String(),
+      'durationSec': durationSec,
+    });
+
+    switch (res) {
+      case ApiSuccess(:final body):
+        final sessionLogId =
+            (body as Map<String, dynamic>)['id'] as String? ?? '';
+        emit(CallEnded(
+          durationSec: durationSec,
+          sessionLogId: sessionLogId,
+          memberId: s.memberId,
+          trainerId: s.trainerId,
+          userId: s.userId,
+          callRequestId: s.callRequestId,
+        ));
+      case ApiFailure(:final message):
+        emit(CallError(message: message));
+    }
   }
 
   void _onPeerUpdated(_PeerUpdated e, Emitter<CallState> emit) {

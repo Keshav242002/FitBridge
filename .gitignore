@@ -45,6 +45,9 @@ token_server/data.json
 # macOS
 .DS_Store
 
+# IDE / AI tooling
+.claude/
+
 # Coverage
 coverage/
 lcov.info

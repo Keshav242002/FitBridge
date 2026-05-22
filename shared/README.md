@@ -1,39 +1,35 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# wtf_shared
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+Dart/Flutter package shared by `guru_app` and `trainer_app`. Contains all business logic, data models, BLoC feature modules, reusable widgets, and utilities.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+## Contents
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+| Directory | What's inside |
+|-----------|--------------|
+| `lib/models/` | `User`, `Message`, `CallRequest`, `SessionLog`, `RoomMeta` — with `fromJson` / `toJson` / `copyWith` / `Equatable` |
+| `lib/services/` | `ApiClient` (sealed HTTP), `AuthService` (Hive-backed), `ChatService`, `ScheduleService`, `CallService` (100ms), `SessionService` |
+| `lib/features/` | BLoC modules: `chat/`, `schedule/`, `call/`, `sessions/`, `members/`, `requests/` |
+| `lib/widgets/` | `AppBarWithRole`, `SkeletonLoader`, `ErrorRetry`, `EmptyState`, `PrimaryButton`, `DevPanel` |
+| `lib/utils/` | `Logger` (tagged ring buffer, 200 lines), theme constants, validators |
 
-## Features
+## Adding as a dependency
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+Both apps reference this package via a path dependency in their `pubspec.yaml`:
 
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  wtf_shared:
+    path: ../shared
 ```
 
-## Additional information
+## Running tests
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```bash
+cd shared
+flutter test
+```
+
+Unit tests cover:
+- `message_test.dart` — serialization / deserialization roundtrip
+- `schedule_validator_test.dart` — past-time rejection, future-time acceptance
+- `session_duration_test.dart` — duration calculation from start/end timestamps
