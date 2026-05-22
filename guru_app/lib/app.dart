@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wtf_shared/wtf_shared.dart';
+import 'core/constants.dart';
 import 'core/theme.dart';
 import 'features/auth/bloc/onboarding_bloc.dart';
 import 'features/auth/presentation/onboarding_screen.dart';
@@ -11,11 +12,18 @@ class GuruApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WTF Guru',
-      theme: GuruTheme.light,
-      debugShowCheckedModeBanner: false,
-      home: _RootPage(),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<ApiClient>(
+          create: (_) => ApiClient(baseUrl: kApiBaseUrl),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'WTF Guru',
+        theme: GuruTheme.light,
+        debugShowCheckedModeBanner: false,
+        home: _RootPage(),
+      ),
     );
   }
 }

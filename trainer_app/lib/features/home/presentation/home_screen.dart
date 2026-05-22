@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wtf_shared/wtf_shared.dart';
-import '../../../core/constants.dart';
-import '../../../shared/widgets/app_bar_with_role.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.user});
@@ -43,22 +42,24 @@ class _HealthFab extends StatefulWidget {
 class _HealthFabState extends State<_HealthFab> {
   bool _loading = false;
 
-  Future<void> _ping() async {
+  Future<void> _ping(BuildContext context) async {
     if (_loading) return;
+    final api = context.read<ApiClient>();
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _loading = true);
-    final res = await apiClient.get('/health');
+    final res = await api.get('/health');
     if (!mounted) return;
     setState(() => _loading = false);
     switch (res) {
       case ApiSuccess(:final body):
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Server OK — hmsMode: ${(body as Map)['hmsMode']}'),
             backgroundColor: Colors.green[700],
           ),
         );
       case ApiFailure(:final message):
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('Server error: $message'), backgroundColor: Colors.red[700]),
         );
     }
@@ -67,7 +68,7 @@ class _HealthFabState extends State<_HealthFab> {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
-      onPressed: _ping,
+      onPressed: () => _ping(context),
       icon: _loading
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
           : const Icon(Icons.wifi_tethering),

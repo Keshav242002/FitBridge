@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wtf_shared/wtf_shared.dart';
-import '../../../shared/widgets/app_bar_with_role.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.user});

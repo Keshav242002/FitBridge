@@ -44,21 +44,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   title: 'Welcome to WTF',
                   body: 'Your personal training journey starts here. '
                       'Chat with your trainer, schedule sessions, and track your progress.',
-                  onNext: () => context.read<OnboardingBloc>().add(OnboardingNextTapped()),
+                  onNext: () => context.read<OnboardingBloc>().add(const OnboardingNextTapped()),
                 ),
               OnboardingSlide2() => _Slide(
                   icon: Icons.video_call_outlined,
                   title: 'Live Video Sessions',
                   body: 'Join face-to-face training sessions with your trainer '
                       'using high-quality video calls.',
-                  onNext: () => context.read<OnboardingBloc>().add(OnboardingNextTapped()),
+                  onNext: () => context.read<OnboardingBloc>().add(const OnboardingNextTapped()),
                 ),
               OnboardingProfileSetup(:final isLoading) => _ProfileSetup(
                   nameCtrl: _nameCtrl,
                   isLoading: isLoading,
                   onNameChanged: (v) =>
                       context.read<OnboardingBloc>().add(OnboardingNameChanged(v)),
-                  onComplete: () => context.read<OnboardingBloc>().add(OnboardingCompleted()),
+                  onComplete: () => context.read<OnboardingBloc>().add(const OnboardingCompleted()),
                 ),
               OnboardingSuccess() => const SizedBox.shrink(),
             },

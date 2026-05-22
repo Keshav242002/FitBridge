@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wtf_shared/wtf_shared.dart';
+import '../models/models.dart';
 
 class AppBarWithRole extends StatelessWidget implements PreferredSizeWidget {
   const AppBarWithRole({
@@ -21,23 +21,7 @@ class AppBarWithRole extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final roleLabel = user.role == UserRole.trainer ? 'Trainer' : 'Member';
     return AppBar(
-      title: Row(
-        children: [
-          Text(user.name),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              roleLabel,
-              style: const TextStyle(fontSize: 11, color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+      title: Text('$roleLabel • ${user.name}'),
       actions: actions,
       bottom: bottom,
     );

@@ -111,6 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submit(BuildContext context) {
-    context.read<LoginBloc>().add(LoginSubmitted());
+    context.read<LoginBloc>().add(const LoginSubmitted());
   }
 }
