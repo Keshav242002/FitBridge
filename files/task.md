@@ -110,17 +110,13 @@
 
 ## Phase 6 — Sessions + polish (5:00 – 5:30)
 
-- [ ] **6.1** Sessions list screen (both apps): `SessionsBloc` loads from server. Filter chips: All / Last 7 days / This Month.
-- [ ] **6.2** Each row: date, duration (formatted "12m 34s"), rating stars if any. Tap → detail modal showing both notes.
-- [ ] **6.3** Sort by `startedAt` desc.
-- [ ] **6.4** Empty state: "Schedule your first call" with CTA.
-- [ ] **6.5** Unit test: `session_duration_test.dart`.
-- [ ] **6.6** DevPanel: floating ⋮ button (only in `kDebugMode`); bottom sheet with env, build info, last 20 logs, "Copy logs" button, "Allow joining calls anytime" toggle (writes to a flag the Upcoming Calls screen reads).
-- [ ] **6.7** Polish pass:
-  - Error states with retry on every screen.
-  - Skeleton loaders on initial loads.
-  - Snackbars with "Copy error" action on any caught exception.
-  - Verify all required UX copy strings used verbatim.
+- [x] **6.1** Sessions list screen (both apps): `SessionsBloc` loads from server. Filter chips: All / Last 7 days / This Month.
+- [x] **6.2** Each row: date, duration (formatted "12m 34s"), rating stars if any. Tap → detail modal showing both notes.
+- [x] **6.3** Sort by `startedAt` desc.
+- [x] **6.4** Empty state: "Schedule your first call" with CTA.
+- [x] **6.5** Unit test: `session_duration_test.dart`. 4/4 passing.
+- [x] **6.6** DevPanel: floating ⋮ button (only in `kDebugMode`); bottom sheet with env, build info, last 20 logs, "Copy logs" button, "Allow joining calls anytime" toggle — wired to `allowJoiningCallsAnytime` global read by both `_RequestCard` (member) and `_UpcomingCard` (trainer).
+- [x] **6.7** Polish pass: SkeletonLoader, ErrorRetry (with "Copy error"), EmptyState, PrimaryButton widgets. All 6 required copy strings verified verbatim. MyRequestsPage migrated from setState to `MyRequestsBloc`. `dart analyze`: No issues on all 3 packages.
 - [ ] **6.8** Commit: `feat: sessions list, filters, DevPanel; polish error states`.
 
 ---

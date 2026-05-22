@@ -8,34 +8,36 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWithRole(user: user),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: const [
-            SizedBox(height: 8),
-            _HomeCard(
-              icon: Icons.chat_bubble_outline,
-              label: 'Chat',
-              subtitle: 'Message your trainer',
-              destination: _Dest.chat,
-            ),
-            SizedBox(height: 16),
-            _HomeCard(
-              icon: Icons.calendar_month_outlined,
-              label: 'Schedule',
-              subtitle: 'Request a video call',
-              destination: _Dest.schedule,
-            ),
-            SizedBox(height: 16),
-            _HomeCard(
-              icon: Icons.bar_chart_outlined,
-              label: 'Sessions',
-              subtitle: 'View past sessions',
-              destination: _Dest.sessions,
-            ),
-          ],
+    return DevPanelOverlay(
+      child: Scaffold(
+        appBar: AppBarWithRole(user: user),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: const [
+              SizedBox(height: 8),
+              _HomeCard(
+                icon: Icons.chat_bubble_outline,
+                label: 'Chat',
+                subtitle: 'Message your trainer',
+                destination: _Dest.chat,
+              ),
+              SizedBox(height: 16),
+              _HomeCard(
+                icon: Icons.calendar_month_outlined,
+                label: 'Schedule',
+                subtitle: 'Request a video call',
+                destination: _Dest.schedule,
+              ),
+              SizedBox(height: 16),
+              _HomeCard(
+                icon: Icons.bar_chart_outlined,
+                label: 'Sessions',
+                subtitle: 'View past sessions',
+                destination: _Dest.sessions,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -76,6 +78,7 @@ class _HomeCard extends StatelessWidget {
   }
 
   void _navigate(BuildContext context) {
+    final user = AuthService.currentUser()!;
     switch (destination) {
       case _Dest.chat:
         Navigator.of(context)
@@ -84,7 +87,11 @@ class _HomeCard extends StatelessWidget {
         Navigator.of(context)
             .push(MaterialPageRoute<void>(builder: (_) => const ScheduleScreen()));
       case _Dest.sessions:
-        break;
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => SessionsPage(userId: user.id),
+          ),
+        );
     }
   }
 }

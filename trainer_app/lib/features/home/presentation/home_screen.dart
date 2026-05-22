@@ -10,23 +10,26 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWithRole(user: user),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          children: const [
-            _HomeTile(icon: Icons.people_outline, label: 'Members', dest: _Dest.members),
-            _HomeTile(icon: Icons.chat_bubble_outline, label: 'Chats', dest: _Dest.chats),
-            _HomeTile(icon: Icons.calendar_month_outlined, label: 'Requests', dest: _Dest.requests),
-            _HomeTile(icon: Icons.bar_chart_outlined, label: 'Sessions', dest: _Dest.sessions),
-          ],
+    return DevPanelOverlay(
+      child: Scaffold(
+        appBar: AppBarWithRole(user: user),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            children: const [
+              _HomeTile(icon: Icons.people_outline, label: 'Members', dest: _Dest.members),
+              _HomeTile(icon: Icons.chat_bubble_outline, label: 'Chats', dest: _Dest.chats),
+              _HomeTile(
+                  icon: Icons.calendar_month_outlined, label: 'Requests', dest: _Dest.requests),
+              _HomeTile(icon: Icons.bar_chart_outlined, label: 'Sessions', dest: _Dest.sessions),
+            ],
+          ),
         ),
+        floatingActionButton: kDebugMode ? _HealthFab(user: user) : null,
       ),
-      floatingActionButton: kDebugMode ? _HealthFab(user: user) : null,
     );
   }
 }
@@ -70,6 +73,7 @@ class _HealthFabState extends State<_HealthFab> {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'health_fab',
       onPressed: () => _ping(context),
       icon: _loading
           ? const SizedBox(
@@ -106,7 +110,10 @@ class _HomeTile extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 label,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -116,6 +123,7 @@ class _HomeTile extends StatelessWidget {
   }
 
   void _navigate(BuildContext context) {
+    final user = AuthService.currentUser()!;
     switch (dest) {
       case _Dest.chats:
         Navigator.of(context)
@@ -123,8 +131,13 @@ class _HomeTile extends StatelessWidget {
       case _Dest.requests:
         Navigator.of(context)
             .push(MaterialPageRoute<void>(builder: (_) => const RequestsScreen()));
-      case _Dest.members:
       case _Dest.sessions:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => SessionsPage(userId: user.id),
+          ),
+        );
+      case _Dest.members:
         break;
     }
   }

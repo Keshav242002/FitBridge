@@ -14,6 +14,21 @@
 
 ---
 
+## 2026-05-22 18:30 — Phase 6 complete: Sessions + DevPanel + polish
+
+- SessionService: GET /session-logs?userId=
+- SessionsBloc: sealed events/states, All/Last 7 days/This Month filter chips, sort by startedAt desc
+- SessionsPage: skeleton loaders on initial load; ErrorRetry (message + Retry + Copy error buttons); EmptyState "Schedule your first call" CTA; filter chips; session rows (date, "12m 34s", ★ stars); detail modal (DraggableScrollableSheet) with trainer + member notes
+- 4 new shared widgets: SkeletonLoader (animated opacity), ErrorRetry, EmptyState, PrimaryButton
+- DevPanel: kDebugMode-only `DevPanelOverlay` wraps Scaffold with a Stack + `FloatingActionButton.small` (⋮). Bottom sheet: build mode, API base (masked HMS_APP_ID), last 20 log lines from ring buffer, "Copy logs" / "Clear logs" buttons, "Allow joining calls anytime" toggle (global bool bypasses 10-min window check).
+- Both home screens: Sessions → `SessionsPage(userId: user.id)`, wrapped with DevPanelOverlay. Trainer app HealthFab gets heroTag to avoid conflict with DevPanel FAB.
+- 6 required copy strings: all 6 verified present verbatim (3 were missing — fixed pre_join "Ready to join? Check mic and camera.", my_requests "Call approved for {date}.", "Call request declined. Reason: {text}.")
+- Unit test: session_duration_test.dart — 4/4 passing (durationSec==720, zero-length, nullable fields, copyWith)
+- dart analyze: No issues on all 3 packages
+- AI_LEDGER.md: entry 11 added. Total entries: 11.
+- Files: shared/lib/features/sessions/**, shared/lib/widgets/{skeleton_loader,error_retry,empty_state,primary_button,dev_panel}.dart, shared/lib/services/session_service.dart, guru_app+trainer_app home_screen.dart, shared/lib/features/call/presentation/pre_join_page.dart, shared/lib/features/schedule/presentation/my_requests_page.dart, shared/test/session_duration_test.dart
+- Next: Phase 7 — Wrap (AI_LEDGER finalized, README, demo script, push)
+
 ## 2026-05-22 17:00 — Phase 5 complete: 100ms call integration
 
 - Platform configs: Android (14 permissions, minSdk=21 in both apps), iOS (NSCamera/Microphone/LocalNetwork/Bluetooth usage keys, platform :ios, '12.0', permission_handler GCC_PREPROCESSOR_DEFINITIONS in both Podfiles)

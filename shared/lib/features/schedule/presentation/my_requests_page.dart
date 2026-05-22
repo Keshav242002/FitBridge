@@ -5,101 +5,76 @@ import '../../../models/user.dart';
 import '../../../services/api_client.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/schedule_service.dart';
+import '../../../widgets/dev_panel.dart';
+import '../../../widgets/error_retry.dart';
 import '../../call/presentation/pre_join_page.dart';
+import '../bloc/my_requests_bloc.dart';
+import '../bloc/my_requests_event.dart';
+import '../bloc/my_requests_state.dart';
 
-class MyRequestsPage extends StatefulWidget {
+class MyRequestsPage extends StatelessWidget {
   const MyRequestsPage({super.key});
 
   @override
-  State<MyRequestsPage> createState() => _MyRequestsPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => MyRequestsBloc(
+        service: ScheduleService(api: context.read<ApiClient>()),
+        userId: AuthService.currentUser()!.id,
+      ),
+      child: const _MyRequestsView(),
+    );
+  }
 }
 
-class _MyRequestsPageState extends State<MyRequestsPage> {
-  List<CallRequest>? _requests;
-  String? _error;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final api = context.read<ApiClient>();
-    final service = ScheduleService(api: api);
-    final res = await service.getRequests(AuthService.currentUser()!.id);
-    if (!mounted) return;
-    switch (res) {
-      case ApiSuccess(:final body):
-        try {
-          final list = (body as List)
-              .map((j) => CallRequest.fromJson(j as Map<String, dynamic>))
-              .toList()
-            ..sort((a, b) => b.scheduledFor.compareTo(a.scheduledFor));
-          setState(() {
-            _requests = list;
-            _loading = false;
-          });
-        } catch (e) {
-          setState(() {
-            _error = 'Could not parse requests';
-            _loading = false;
-          });
-        }
-      case ApiFailure(:final message):
-        setState(() {
-          _error = message;
-          _loading = false;
-        });
-    }
-  }
+class _MyRequestsView extends StatelessWidget {
+  const _MyRequestsView();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('My Requests')),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: _buildBody(),
+      body: BlocBuilder<MyRequestsBloc, MyRequestsState>(
+        builder: (context, state) => switch (state) {
+          MyRequestsLoading() => const Center(child: CircularProgressIndicator()),
+          MyRequestsError(:final message) => ErrorRetry(
+              message: message,
+              onRetry: () =>
+                  context.read<MyRequestsBloc>().add(const LoadMyRequests()),
+            ),
+          MyRequestsLoaded(:final requests) => _buildList(context, requests),
+        },
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              Text(_error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              ElevatedButton(onPressed: _load, child: const Text('Retry')),
-            ],
-          ),
+  Widget _buildList(BuildContext context, List<CallRequest> requests) {
+    if (requests.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () async =>
+            context.read<MyRequestsBloc>().add(const LoadMyRequests()),
+        child: ListView(
+          children: const [
+            SizedBox(height: 120),
+            Center(
+              child: Text(
+                'No requests yet.',
+                style: TextStyle(color: Colors.black54),
+              ),
+            ),
+          ],
         ),
       );
     }
-    final requests = _requests ?? [];
-    if (requests.isEmpty) {
-      return const Center(
-        child: Text('No requests yet.', style: TextStyle(color: Colors.black54)),
-      );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: requests.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (ctx, i) => _RequestCard(request: requests[i]),
+    return RefreshIndicator(
+      onRefresh: () async =>
+          context.read<MyRequestsBloc>().add(const LoadMyRequests()),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: requests.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (_, i) => _RequestCard(request: requests[i]),
+      ),
     );
   }
 }
@@ -111,8 +86,10 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canJoin = request.status == CallRequestStatus.approved &&
-        request.scheduledFor.isAfter(DateTime.now()) &&
-        request.scheduledFor.difference(DateTime.now()).inMinutes <= 10;
+        (allowJoiningCallsAnytime ||
+            (request.scheduledFor.isAfter(DateTime.now()) &&
+                request.scheduledFor.difference(DateTime.now()).inMinutes <=
+                    10));
 
     return Card(
       child: Padding(
@@ -133,13 +110,25 @@ class _RequestCard extends StatelessWidget {
             ),
             if (request.note.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(request.note, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+              Text(request.note,
+                  style: const TextStyle(color: Colors.black54, fontSize: 13)),
             ],
-            if (request.declineReason != null) ...[
+            if (request.status == CallRequestStatus.approved) ...[
               const SizedBox(height: 6),
               Text(
-                'Reason: ${request.declineReason}',
-                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+                'Call approved for ${_formatDateTime(request.scheduledFor)}.',
+                style: const TextStyle(
+                    color: Colors.green,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
+            if (request.status == CallRequestStatus.declined) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Call request declined. Reason: ${request.declineReason ?? '—'}.',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.error, fontSize: 13),
               ),
             ],
             if (canJoin) ...[
@@ -169,7 +158,8 @@ class _RequestCard extends StatelessWidget {
   }
 
   String _formatDateTime(DateTime dt) {
-    final date = '${_weekday(dt.weekday)}, ${dt.day} ${_month(dt.month)} ${dt.year}';
+    final date =
+        '${_weekday(dt.weekday)}, ${dt.day} ${_month(dt.month)} ${dt.year}';
     final time =
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     return '$date · $time';
@@ -177,9 +167,10 @@ class _RequestCard extends StatelessWidget {
 
   String _weekday(int w) =>
       const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][w - 1];
-  String _month(int m) =>
-      const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-          [m - 1];
+  String _month(int m) => const [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ][m - 1];
 }
 
 class _StatusChip extends StatelessWidget {
@@ -200,7 +191,9 @@ class _StatusChip extends StatelessWidget {
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 12, fontWeight: FontWeight.w600)),
     );
   }
 }

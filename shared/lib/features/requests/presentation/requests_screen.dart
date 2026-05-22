@@ -5,6 +5,7 @@ import '../../../models/user.dart';
 import '../../../services/api_client.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/schedule_service.dart';
+import '../../../widgets/dev_panel.dart';
 import '../../call/presentation/pre_join_page.dart';
 import '../bloc/requests_bloc.dart';
 import '../bloc/requests_event.dart';
@@ -197,7 +198,8 @@ class _UpcomingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canJoin = request.scheduledFor.difference(DateTime.now()).inMinutes <= 10;
+    final canJoin = allowJoiningCallsAnytime ||
+        request.scheduledFor.difference(DateTime.now()).inMinutes <= 10;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(

@@ -98,15 +98,9 @@ class _PreJoinBody extends StatelessWidget {
           const Icon(Icons.videocam_rounded, size: 64, color: Colors.black38),
           const SizedBox(height: 20),
           Text(
-            'Ready to join?',
+            'Ready to join? Check mic and camera.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Check your mic and camera before joining.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black54),
           ),
           const SizedBox(height: 40),
           Row(
