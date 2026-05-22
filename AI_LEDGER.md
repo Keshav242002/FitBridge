@@ -18,6 +18,26 @@ This file is required evidence of AI-native workflow. Every meaningful use of an
 - **Commit**: `chore: initial scaffold of two apps + shared package + token server`
 - **Notes**: The plan correctly identified 100ms as the highest-risk phase (25 pts) and established the cut order: bonuses → polish → scheduler edge cases → onboarding animations. Never cut chat, 100ms join, session log, AI_LEDGER.
 
+### Entry 4 — Token server: Express routes + in-memory store + SSE fan-out
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 13:00
+- **Phase**: 2
+- **Intent**: Generate the full Node.js token server: store.js with debounced persistence, hms.js for JWT minting, 5 route files (events, messages, call_requests, session_logs, token), and the Express entry point.
+- **Prompt summary**: Asked to implement all Phase 2 server tasks: in-memory store with JSON persistence, HMS JWT minting with fallback, SSE client map with heartbeat, full CRUD routes with SSE fan-out, past-time + conflict validation on call requests, system messages on approve/decline.
+- **Output use**: Used as-is. Node.js syntax check (`node --check`) passed. cURL smoke test verified: /health, /users, POST /messages, GET /messages all returned correct JSON. /token correctly returns 503 when credentials not configured.
+- **Commit**: `feat: token server + sealed ApiClient`
+- **Notes**: SSE `emit()` is a named export alongside the router — this avoids a global singleton module issue where messages.js and call_requests.js both need to fan out events. The 30-min conflict window check uses `Math.abs` so overlaps from either direction are caught.
+
+### Entry 5 — Dart ApiClient: sealed ApiResponse per api_contract.md
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 13:00
+- **Phase**: 2
+- **Intent**: Implement the exact ApiClient from api_contract.md spec — one HTTP class, sealed response, no model parsing inside.
+- **Prompt summary**: Asked to copy and adapt the api_contract.md code verbatim into shared/lib/services/api_client.dart and wire a base URL singleton in both apps via --dart-define.
+- **Output use**: Used verbatim from spec. Added smoke-test FAB to TrainerApp HomeScreen guarded by `kDebugMode`.
+- **Commit**: `feat: token server + sealed ApiClient`
+- **Notes**: `dart analyze` clean on all 3 packages. The singleton `apiClient` in `core/constants.dart` per-app reads `API_BASE_URL` from dart-define at compile time — no runtime lookup needed.
+
 ### Entry 3 — Auth + Onboarding BLoC scaffold for both apps
 - **Tool**: Claude Code
 - **Time**: ~2026-05-22 11:00

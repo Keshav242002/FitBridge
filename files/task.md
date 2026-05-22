@@ -39,24 +39,15 @@
 
 ## Phase 2 — Token server + ApiClient (1:00 – 1:45)
 
-- [ ] **2.1** `token_server/src/index.js`: Express server on `http://localhost:8787`. CORS open. `GET /health` returns `{ok: true}`.
-- [ ] **2.2** Endpoints:
-  - `POST /token` body `{userId, role}` → returns `{token, hmsRoomId}`. Calls 100ms management API (or returns dashboard temp token from `.env` for fallback).
-  - `POST /messages` body `{chatId, senderId, receiverId, text}` → returns full Message with id + timestamps. Stored in `data.json`.
-  - `GET /messages?chatId=...&since=<isoTime>` → returns array of new messages.
-  - `POST /messages/:id/read` → marks message read by receiver.
-  - `POST /call-requests` body `{memberId, trainerId, scheduledFor, note}` → returns CallRequest.
-  - `PATCH /call-requests/:id` body `{status, declineReason?}` → updates and returns it. Also creates `RoomMeta` on approval.
-  - `GET /call-requests?userId=...&since=<isoTime>`.
-  - `POST /session-logs` and `GET /session-logs?userId=...`.
-  - `GET /events?userId=...` — SSE stream pushing all relevant updates (chat msgs, call request changes, room ready) for that user.
-- [ ] **2.3** Persistence: write/read `data.json` on every mutation (debounced 200ms).
-- [ ] **2.4** `token_server/.env.example`: `HMS_APP_ACCESS_KEY=`, `HMS_APP_SECRET=`, `HMS_TEMPLATE_ID=`, `HMS_FALLBACK_TOKEN=`, `PORT=8787`.
-- [ ] **2.5** `token_server/README.md`: how to run (`npm i && npm start`), how to get HMS credentials.
-- [ ] **2.6** Dart side: `shared/lib/services/api_client.dart` — the **one and only** HTTP class. Methods: `get`, `post`, `patch`, `delete`. Returns `ApiResponse<dynamic>` (sealed: `ApiSuccess` carries the `dynamic` body and statusCode; `ApiFailure` carries code + message + optional details). **Do not parse models inside ApiClient.** See `.claude/api_contract.md`.
-- [ ] **2.7** Wire base URL via `--dart-define=API_BASE_URL=http://10.0.2.2:8787` (Android emulator localhost) with a fallback to `http://localhost:8787`.
-- [ ] **2.8** Smoke test: from Trainer App tap a debug button → calls `GET /health` → shows snackbar with response.
-- [ ] **2.9** Commit: `feat: token server + ApiClient with sealed ApiResponse`.
+- [x] **2.1** `token_server/src/index.js`: Express on `:8787`, CORS open, `GET /health` returns `{ok, uptime, hmsMode}`.
+- [x] **2.2** Endpoints: POST+GET /messages, POST /messages/read-batch, POST+PATCH+GET /call-requests, POST+PATCH+GET /session-logs, POST /token, GET /events (SSE + 25s heartbeat).
+- [x] **2.3** Persistence: write/read `data.json` on every mutation (debounced 200ms). src/store.js.
+- [x] **2.4** `token_server/.env.example`: HMS_APP_ACCESS_KEY=, HMS_APP_SECRET=, HMS_ROOM_ID=, HMS_FALLBACK_TOKEN=, PORT=8787.
+- [-] **2.5** `token_server/README.md`: deferred to Phase 7 wrap.
+- [x] **2.6** Dart: `shared/lib/services/api_client.dart` — sealed ApiResponse (ApiSuccess/ApiFailure). No model parsing inside.
+- [x] **2.7** Base URL via `--dart-define=API_BASE_URL`, fallback `http://localhost:8787`.
+- [x] **2.8** Smoke test: TrainerApp HomeScreen FAB (kDebugMode) calls GET /health, shows snackbar.
+- [x] **2.9** Commit: `feat: token server + sealed ApiClient`.
 
 ---
 

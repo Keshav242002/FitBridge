@@ -14,6 +14,19 @@
 
 ---
 
+## 2026-05-22 13:00 — Phase 2 complete: token server + ApiClient
+
+- token_server: src/index.js (Express :8787), src/store.js (in-memory + debounced JSON), src/hms.js (JWT/fallback), 5 route files (events, messages, call_requests, session_logs, token)
+- All endpoints live: GET /health, GET /users, POST+GET /messages, POST /messages/read-batch, POST+PATCH+GET /call-requests (with system messages on approve/decline), POST+PATCH+GET /session-logs, POST /token, GET /events (SSE + 25s heartbeat)
+- Validation: past-time, 140-char note, 30-min trainer conflict, unknown user IDs
+- Flutter: shared/lib/services/api_client.dart — sealed ApiResponse (ApiSuccess/ApiFailure), no model parsing inside
+- Base URL via --dart-define=API_BASE_URL, defaults to localhost:8787
+- Smoke test FAB on TrainerApp HomeScreen (kDebugMode only), calls GET /health
+- cURL verified: /health ✓, /users ✓, POST /messages ✓, GET /messages ✓
+- dart analyze: No issues on all 3 packages
+- Files: token_server/src/**, shared/lib/services/api_client.dart, trainer_app/lib/core/constants.dart, guru_app/lib/core/constants.dart
+- Next: Phase 3 — Chat
+
 ## 2026-05-22 11:00 — Phase 1 complete: auth + onboarding
 
 - AuthService in shared/: Hive-backed login/currentUser/logout/seed (idempotent `hasSeeded` flag)
