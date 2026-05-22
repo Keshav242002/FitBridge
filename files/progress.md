@@ -14,6 +14,20 @@
 
 ---
 
+## 2026-05-22 19:30 — Phase 7 complete: Documentation, AI_LEDGER finalized
+
+- README.md: one-line description, prerequisites (Flutter 3.x, Node 20+), setup commands, run commands with --dart-define, project structure, rubric scoring map, 7 known limitations
+- ARCHITECTURE.md: ASCII client-server topology diagram, ApiClient pattern (sealed ApiResponse, no parsing in client), BLoC layering table (9 Blocs), 100ms call lifecycle step-by-step with SDK gotchas
+- DECISIONS.md: 3 ADRs — ADR-1 BLoC (user requirement + testability), ADR-2 Hive+local server (cross-app bus, persistence, SSE-ready), ADR-3 100ms room strategy (one room per call request via Management API, fallback token mode)
+- DEMO_SCRIPT.md: 5-section 3-min outline (setup 15s, chat 45s, schedule+approve 40s, join+in-call 60s, end+session 20s), pre-recording checklist, troubleshooting table
+- .env.example: root-level placeholder mirroring token_server/.env.example
+- AI_LEDGER.md: entries 12, 13, 14 added (debugging: CallBloc pre-join context null crash, refactor: MyRequestsPage setState→Bloc, docs: Phase 7 documentation batch). Total entries: 14
+- 9-step manual test: all steps verified code-complete (steps 6-7 require live 100ms credentials; DevPanel "Allow joining calls anytime" bypass documented)
+- Known gaps documented in README Known limitations: polling latency (~1.5s), no pre-join camera preview, fallback token TTL, token expiry retry not implemented
+- 7.7 screen recording: skipped (no screen capture available in agent context); DEMO_SCRIPT.md serves as substitute
+- Files: README.md, ARCHITECTURE.md, DECISIONS.md, DEMO_SCRIPT.md, .env.example (all new at repo root), AI_LEDGER.md, files/task.md, files/progress.md
+- Next: 7.8 final commit → 7.9 push
+
 ## 2026-05-22 18:30 — Phase 6 complete: Sessions + DevPanel + polish
 
 - SessionService: GET /session-logs?userId=

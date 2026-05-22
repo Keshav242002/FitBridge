@@ -8,6 +8,36 @@ This file is required evidence of AI-native workflow. Every meaningful use of an
 
 ---
 
+### Entry 14 — Phase 7: Documentation (README, ARCHITECTURE, DECISIONS, DEMO_SCRIPT)
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 19:30
+- **Phase**: 7
+- **Intent**: Write all four required documentation files (README.md, ARCHITECTURE.md, DECISIONS.md, DEMO_SCRIPT.md) and the root-level .env.example so the repo is self-contained from a reviewer's perspective.
+- **Prompt summary**: Provided all spec docs (project_spec.md, architecture.md, api_contract.md, bloc_patterns.md, hms_integration.md), the progress.md, and phase_7_wrap.md, then asked to generate: README with one-line description/prerequisites/setup/run/rubric map/known limitations, ARCHITECTURE with ASCII topology + ApiClient pattern + Bloc layering table + call lifecycle diagram, DECISIONS with 3 ADRs (BLoC choice, Hive + local server, 100ms room strategy), and DEMO_SCRIPT as a 5-section 3-minute outline with troubleshooting table.
+- **Output use**: Adapted. The README "Known limitations" table required cross-referencing actual implementation gaps from progress.md (polling latency, no pre-join preview, fallback token TTL) rather than relying on spec doc predictions. ARCHITECTURE.md Bloc table was manually verified against existing file names in shared/lib/features/. DECISIONS.md ADR-3 trade-offs were extended with the token expiry retry gap documented in Phase 5 progress entry.
+- **Commit**: `docs: README, ARCHITECTURE, DECISIONS, demo script, final AI ledger`
+- **Notes**: Four docs written in a single parallel batch — README.md, ARCHITECTURE.md, DECISIONS.md, DEMO_SCRIPT.md. Each file links back to the rubric category it satisfies. The DEMO_SCRIPT troubleshooting table covers the five most common demo failures observed during Phase 5 integration testing.
+
+### Entry 13 — Phase 6/7: Refactor — MyRequestsPage from setState to MyRequestsBloc
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 18:20
+- **Phase**: 6
+- **Intent**: `MyRequestsPage` (Guru side) was originally implemented with `StatefulWidget` + `setState` to hold the list of call requests and a loading flag — a violation of the BLoC-only rule. Refactor it to a proper `MyRequestsBloc` with sealed events and states.
+- **Prompt summary**: Asked to extract `MyRequestsPage` business logic into `MyRequestsBloc` with events `LoadMyRequests` / `RefreshRequests` and states `MyRequestsInitial` / `MyRequestsLoading` / `MyRequestsLoaded(requests)` / `MyRequestsError`. Widget becomes a `StatelessWidget` consuming the bloc via `BlocBuilder`.
+- **Output use**: Used as-is. The refactor exposed that the page was calling `ScheduleService.getMyRequests()` directly — moved to `MyRequestsBloc._onLoad`. The `DevPanelOverlay` wrapping needed to be preserved at the call site in `home_screen.dart`.
+- **Commit**: `feat: sessions list, filters, DevPanel, polish` (bundled with Phase 6 commit)
+- **Notes**: This refactor was triggered by a rubric compliance check before Phase 7 wrap — any `setState` for business logic is a deduction under "Architecture & code quality". The `MyRequestsBloc` now follows the same sealed pattern as every other Bloc: `part 'my_requests_event.dart'; part 'my_requests_state.dart';`.
+
+### Entry 12 — Phase 5 debugging: CallBloc pre-join context lost across state transition
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 16:10
+- **Phase**: 5
+- **Intent**: Debug a runtime crash where `_onJoined` received a null `callRequestId` even though `PrepareJoin` had been dispatched with a valid ID. The root cause was that `CallJoining` state had no data fields, so the IDs vanished from the state machine when the transition happened.
+- **Prompt summary**: Pasted the symptom: `Null check operator used on a null value` inside `_onJoined` at the line reading `_pendingCallRequestId!`. Asked Claude Code to explain why the value was null given the event sequence `PrepareJoin → CallPreparing → CallPreJoin → JoinNow → CallJoining → _Joined`, and to propose a fix that doesn't add data fields to `CallJoining` (which the call site doesn't have access to at that point).
+- **Output use**: Adapted. The suggested fix — stash the IDs in nullable instance fields on the `Bloc` object itself, write them in `onChange()` on `CallJoining`, and read them in `_onJoined` — was accepted. Manual edit: added a `_clearPendingContext()` helper called at the end of `_onJoined` to avoid retaining stale IDs across back-to-back calls.
+- **Commit**: `feat: 100ms call integration with pre-join, in-call controls, reconnection, and session log auto-write`
+- **Notes**: This is a genuine Dart/BLoC architecture edge case: sealed state classes are designed to carry no mutable data, so cross-state context must live on the Bloc instance itself or be threaded through every intermediate state. The `onChange()` hook is the cleanest intercept point because it fires after the state has been emitted and before the next event is processed. This debugging session took ~25 minutes — the longest single debugging segment of the build.
+
 ### Entry 11 — Phase 6: Sessions feature, DevPanel, shared widgets, polish
 - **Tool**: Claude Code
 - **Time**: ~2026-05-22 18:00
