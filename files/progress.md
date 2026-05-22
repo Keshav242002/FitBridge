@@ -14,6 +14,19 @@
 
 ---
 
+## 2026-05-22 11:00 — Phase 1 complete: auth + onboarding
+
+- AuthService in shared/: Hive-backed login/currentUser/logout/seed (idempotent `hasSeeded` flag)
+- Trainer App: LoginBloc (sealed events/states) + LoginScreen (email prefilled aarav@wtf.local) + HomeScreen (4 tiles)
+- Guru App: OnboardingBloc + 2-slide OnboardingScreen + ProfileSetup + HomeScreen (3 cards)
+- AppBarWithRole widget in both apps (role badge chip in AppBar)
+- Themes applied: Trainer #E50914 red, Guru #1769E0 blue, WtfColors extension for success/warning
+- `dart analyze lib/` → No issues found on all 3 packages
+- Files: shared/lib/services/auth_service.dart, trainer_app/lib/features/auth/**, guru_app/lib/features/auth/**, both app.dart + main.dart, core/theme.dart in both
+- Next: Phase 2 — token server endpoints + ApiClient
+
+---
+
 ## YYYY-MM-DD HH:MM — Session start (template — replace this)
 
 - Project initialized from PRD in `.claude/`

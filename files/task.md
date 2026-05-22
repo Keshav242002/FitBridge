@@ -10,30 +10,30 @@
 
 ## Phase 0 — Setup (target: 0:00 – 0:30)
 
-- [ ] **0.1** Initialize repo: `git init`, add `.gitignore` (Flutter + Node + .env), set up `README.md` skeleton.
-- [ ] **0.2** Scaffold `shared/` Dart package: `cd shared && flutter create --template=package .` then strip example code.
-- [ ] **0.3** Scaffold `guru_app/`: `flutter create guru_app --org com.wtf.guru --platforms=android,ios`.
-- [ ] **0.4** Scaffold `trainer_app/`: `flutter create trainer_app --org com.wtf.trainer --platforms=android,ios`.
-- [ ] **0.5** Scaffold `token_server/`: `npm init -y`, install `express`, `cors`, `dotenv`, `jsonwebtoken`, `uuid`, `axios`.
-- [ ] **0.6** Wire both apps to depend on `wtf_shared` via path dependency. Verify `flutter pub get` works in both.
-- [ ] **0.7** Add `flutter_lints`, `flutter_bloc`, `hive`, `hive_flutter`, `hmssdk_flutter`, `permission_handler`, `intl`, `equatable`, `uuid` to both apps. Run `pub get`.
-- [ ] **0.8** Write the 5 data models in `shared/lib/models/` with `fromJson`/`toJson`/`copyWith`/`Equatable` props.
-- [ ] **0.9** Add `shared/lib/utils/logger.dart` with tagged structured logging + ring buffer.
-- [ ] **0.10** First commit: `chore: initial scaffold of two apps + shared package + token server`.
-- [ ] **0.11** Write first 2 AI_LEDGER entries (scaffold + models).
+- [x] **0.1** Initialize repo: `git init`, add `.gitignore` (Flutter + Node + .env), set up `README.md` skeleton.
+- [x] **0.2** Scaffold `shared/` Dart package: `cd shared && flutter create --template=package .` then strip example code.
+- [x] **0.3** Scaffold `guru_app/`: `flutter create guru_app --org com.wtf.guru --platforms=android,ios`.
+- [x] **0.4** Scaffold `trainer_app/`: `flutter create trainer_app --org com.wtf.trainer --platforms=android,ios`.
+- [x] **0.5** Scaffold `token_server/`: `npm init -y`, install `express`, `cors`, `dotenv`, `jsonwebtoken`, `uuid`, `axios`.
+- [x] **0.6** Wire both apps to depend on `wtf_shared` via path dependency. Verify `flutter pub get` works in both.
+- [x] **0.7** Add `flutter_lints`, `flutter_bloc`, `hive`, `hive_flutter`, `hmssdk_flutter`, `permission_handler`, `intl`, `equatable`, `uuid` to both apps. Run `pub get`.
+- [x] **0.8** Write the 5 data models in `shared/lib/models/` with `fromJson`/`toJson`/`copyWith`/`Equatable` props.
+- [x] **0.9** Add `shared/lib/utils/logger.dart` with tagged structured logging + ring buffer.
+- [x] **0.10** First commit: `chore: initial scaffold of two apps + shared package + token server`.
+- [x] **0.11** Write first 2 AI_LEDGER entries (scaffold + models).
 
 ---
 
 ## Phase 1 — Auth + Onboarding (0:30 – 1:00)
 
-- [ ] **1.1** `AuthService` interface in `shared/lib/services/auth_service.dart`: `login(email, pw)`, `currentUser()`, `logout()`. Mock implementation stores current user in Hive.
-- [ ] **1.2** Seed `tr_aarav` and `mb_dk` users into Hive on first launch (idempotent).
-- [ ] **1.3** Trainer App: `LoginBloc` + login screen. Email pre-filled with `aarav@wtf.local`. Any password works. On success → Home.
-- [ ] **1.4** Guru App: `OnboardingBloc` + 2 onboarding slides → profile setup (name prefilled "DK", trainer picker shows Aarav) → Home.
-- [ ] **1.5** "First run" detection: a `hasOnboarded` flag in Hive `meta` box.
-- [ ] **1.6** Home screens: Trainer 4 tiles (Members / Chats / Requests / Sessions); Guru 3 cards (Chat / Schedule / Sessions).
-- [ ] **1.7** Apply theme: Trainer primary red `#E50914`, Guru primary blue `#1769E0`. AppBar shows role badge.
-- [ ] **1.8** Commit: `feat: auth + onboarding flows for both apps`.
+- [x] **1.1** `AuthService` interface in `shared/lib/services/auth_service.dart`: `login(email, pw)`, `currentUser()`, `logout()`. Mock implementation stores current user in Hive.
+- [x] **1.2** Seed `tr_aarav` and `mb_dk` users into Hive on first launch (idempotent).
+- [x] **1.3** Trainer App: `LoginBloc` + login screen. Email pre-filled with `aarav@wtf.local`. Any password works. On success → Home.
+- [x] **1.4** Guru App: `OnboardingBloc` + 2 onboarding slides → profile setup (name prefilled "DK", trainer picker shows Aarav) → Home.
+- [x] **1.5** "First run" detection: a `hasOnboarded` flag in Hive `meta` box.
+- [x] **1.6** Home screens: Trainer 4 tiles (Members / Chats / Requests / Sessions); Guru 3 cards (Chat / Schedule / Sessions).
+- [x] **1.7** Apply theme: Trainer primary red `#E50914`, Guru primary blue `#1769E0`. AppBar shows role badge.
+- [x] **1.8** Commit: `feat: auth + onboarding flows for both apps`.
 
 ---
 
