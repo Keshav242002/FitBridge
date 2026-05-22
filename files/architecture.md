@@ -1,0 +1,306 @@
+# architecture.md — System Topology
+
+> How the two apps and the token server fit together. Read this before writing any networking code.
+
+---
+
+## 1. The full picture
+
+```
+┌───────────────────────┐         ┌───────────────────────┐
+│   Guru App (DK)       │         │   Trainer App (Aarav) │
+│   Flutter, Bloc       │         │   Flutter, Bloc       │
+│                       │         │                       │
+│  ┌─────────────────┐  │         │  ┌─────────────────┐  │
+│  │   ApiClient     │  │         │  │   ApiClient     │  │
+│  │  (http only)    │  │         │  │  (http only)    │  │
+│  └────────┬────────┘  │         │  └────────┬────────┘  │
+│           │           │         │           │           │
+│  ┌────────┴────────┐  │         │  ┌────────┴────────┐  │
+│  │ EventStream     │  │         │  │ EventStream     │  │
+│  │   (SSE / poll)  │  │         │  │   (SSE / poll)  │  │
+│  └────────┬────────┘  │         │  └────────┬────────┘  │
+│           │           │         │           │           │
+│  ┌────────┴────────┐  │         │  ┌────────┴────────┐  │
+│  │   hmssdk_flutter│  │         │  │   hmssdk_flutter│  │
+│  └────────┬────────┘  │         │  └────────┬────────┘  │
+└───────────┼───────────┘         └───────────┼───────────┘
+            │                                 │
+            │ HTTP @ localhost:8787           │
+            ▼                                 ▼
+   ┌─────────────────────────────────────────────────┐
+   │            token_server (Node.js)                │
+   │                                                  │
+   │   /token       → mints 100ms auth tokens         │
+   │   /messages    → chat persistence + fanout       │
+   │   /call-       → request lifecycle               │
+   │      requests                                    │
+   │   /session-logs → after-call records             │
+   │   /events      → SSE per-user push channel       │
+   │                                                  │
+   │   data.json (debounced writes)                   │
+   └────────────────────┬─────────────────────────────┘
+                        │
+                        │ HTTPS
+                        ▼
+              ┌──────────────────┐
+              │   100ms cloud    │
+              │   (auth + RTC)   │
+              └──────────────────┘
+                        ▲
+                        │ WebRTC media
+                        │
+            ┌───────────┴────────────┐
+            │                        │
+   (Guru App connects)      (Trainer App connects)
+```
+
+---
+
+## 2. Why a token server instead of "pure local"?
+
+The PRD says "local-first, no cloud backend". The token server is **on localhost**, runs from the candidate's machine, ships with the repo. From the reviewer's perspective, this is local. It serves three purposes:
+
+1. **Required for 100ms.** Production 100ms apps must mint tokens server-side. Putting the management key in the Flutter app is a security-fail and the rubric calls it out.
+2. **Cross-app message bus.** Two Flutter processes (Android emulator + another emulator, or emulator + iOS simulator) can't easily share a Hive file on disk in real time. A loopback HTTP server is the simplest, most reliable bridge.
+3. **Persistence between app restarts.** `data.json` survives, so chat history doesn't disappear if you kill and relaunch an app.
+
+Trade-off: chat send → render on peer is ~1.5s in the polling fallback (target was 400ms). Acceptable. If SSE works on the platform, it drops to ~100ms. Document this honestly.
+
+---
+
+## 3. The token server in detail
+
+**Stack:** Node.js + Express. Plain JS. No TypeScript (saves 10 minutes of setup).
+
+**Files:**
+```
+token_server/
+├─ src/
+│  ├─ index.js              # Express bootstrap
+│  ├─ routes/
+│  │  ├─ token.js
+│  │  ├─ messages.js
+│  │  ├─ call_requests.js
+│  │  ├─ session_logs.js
+│  │  └─ events.js          # SSE
+│  ├─ store.js              # in-memory + data.json persistence
+│  └─ hms.js                # 100ms management API wrapper
+├─ data.json                # gitignored, autogenerated
+├─ .env.example
+├─ package.json
+└─ README.md
+```
+
+**Persistence model.** A single `Store` singleton holds:
+```js
+{
+  users: { tr_aarav: {...}, mb_dk: {...} },
+  messages: [],         // sorted by createdAt asc
+  callRequests: [],
+  sessionLogs: [],
+  roomMetas: []
+}
+```
+Every mutation calls `store.flush()` which debounces a JSON write to `data.json` (200ms).
+
+**Event bus.** A `Map<userId, Set<Response>>` of open SSE response objects. Whenever a message/request/log/room changes, the server pushes a `data:` frame to every SSE listener for the affected users (sender, receiver, or both).
+
+**100ms integration on the server.** Two modes, picked from `.env`:
+
+- **Mode A — Management API (preferred):** server uses `HMS_APP_ACCESS_KEY` + `HMS_APP_SECRET` to sign a JWT (HS256) per `POST /token` request. Room IDs come from `HMS_TEMPLATE_ID` + a created room. Use the [100ms management token guide](https://www.100ms.live/docs/get-started/v2/get-started/security-and-tokens) if internet is allowed during the test.
+- **Mode B — Fallback dashboard token:** if signing fails or creds are blank, return `HMS_FALLBACK_TOKEN` from `.env` (a test-only token copied from the 100ms dashboard). Both apps join the same room. Document the limitation: tokens expire in 2 hours, you might need to refresh during the demo.
+
+Always log which mode is active at boot.
+
+---
+
+## 4. The Flutter side
+
+### 4.1 Layered architecture inside each app
+
+```
+main.dart
+  └─ runApp(WtfApp)
+WtfApp (MaterialApp)
+  └─ MultiRepositoryProvider [ApiClient, AuthService, EventStreamClient]
+      └─ MultiBlocProvider [AppBloc]
+          └─ Router
+              ├─ OnboardingPage → OnboardingBloc
+              ├─ HomePage
+              │   ├─ ChatListPage → ChatListBloc
+              │   │   └─ ConversationPage → ChatBloc
+              │   ├─ SchedulePage → ScheduleBloc
+              │   ├─ UpcomingCallsPage → UpcomingCallsBloc
+              │   │   └─ PreJoinPage → CallBloc
+              │   │       └─ InCallPage → (same CallBloc instance)
+              │   │           └─ PostCallSheet → CallBloc / SessionBloc
+              │   └─ SessionsPage → SessionsBloc
+              └─ DevPanel (overlay, debug only)
+```
+
+### 4.2 `shared/` package contents
+
+```
+shared/lib/
+├─ models/
+│  ├─ user.dart
+│  ├─ message.dart
+│  ├─ call_request.dart
+│  ├─ session_log.dart
+│  ├─ room_meta.dart
+│  └─ models.dart           # barrel
+├─ services/
+│  ├─ api_client.dart       # the ONLY http class
+│  ├─ event_stream_client.dart  # SSE only; documented exception
+│  ├─ auth_service.dart
+│  ├─ chat_service.dart     # thin wrapper around ApiClient + EventStream
+│  ├─ schedule_service.dart
+│  ├─ call_service.dart     # wraps hmssdk_flutter
+│  ├─ session_service.dart
+│  └─ local_store.dart      # Hive wrapper for client-side caching only
+├─ widgets/
+│  ├─ app_bar_with_role.dart
+│  ├─ chat_bubble.dart
+│  ├─ typing_indicator.dart
+│  ├─ time_chip.dart
+│  ├─ primary_button.dart
+│  ├─ empty_state.dart
+│  └─ skeleton_loader.dart
+└─ utils/
+   ├─ theme.dart            # both color schemes; switch via param
+   ├─ validators.dart       # schedule_validator, etc.
+   ├─ logger.dart           # tagged + ring buffer
+   ├─ date_format.dart      # "5m ago", "Today 6:00 PM"
+   └─ result.dart           # if you need a generic Result<T> (probably not, ApiResponse covers it)
+```
+
+### 4.3 Boot sequence
+
+1. `main()` initializes Hive, opens `meta` and cache boxes.
+2. Reads `--dart-define=API_BASE_URL` (default `http://10.0.2.2:8787` on Android, `http://localhost:8787` elsewhere).
+3. Constructs `ApiClient`.
+4. Calls `AuthService.bootstrap()` — checks `meta.currentUserId`. If absent, route to Onboarding (Guru) / Login (Trainer). If present, route to Home.
+5. Subscribes the global `EventStreamClient` to `GET /events?userId=...` once user is known. Events fan out to per-Bloc streams.
+6. Renders the app.
+
+### 4.4 Network base URL gotcha
+
+- **Android emulator**: `10.0.2.2` reaches the host's `localhost`.
+- **iOS simulator**: `localhost` works directly.
+- **Real device on same Wi-Fi**: must use the host machine's LAN IP (e.g., `192.168.1.x:8787`).
+
+The `--dart-define=API_BASE_URL=...` lets the candidate set this per run. Document in README.
+
+---
+
+## 5. The 100ms call lifecycle
+
+Mapped step-by-step against the SDK's API:
+
+```
+USER TAPS "JOIN CALL"
+         │
+         ▼
+  CallBloc.add(PrepareJoin(callRequestId))
+         │
+         ▼
+  POST /token { userId, role: 'host'|'guest' }
+         │
+         ├─ server creates/fetches HMSRoom for callRequestId
+         │  signs a JWT for the requested role
+         │  returns { token, hmsRoomId }
+         ▼
+  CallBloc emits PreJoin(token, roomId)
+         │
+         ▼
+  PreJoinPage renders local camera preview using
+  a temporary HMSSDK preview track (or skip preview
+  and go straight to join — simpler, slightly less polish)
+         │
+         ▼
+  USER TAPS "JOIN"
+         │
+         ▼
+  CallService.join(token, userName)
+    └─ hmsSDK.build()
+    └─ hmsSDK.addUpdateListener(this)
+    └─ hmsSDK.join(HMSConfig(authToken: token, userName: name))
+         │
+         ▼
+  HMSUpdateListener fires:
+    - onJoin(room)       → bloc emits InCall(local, [], micOn, camOn, false)
+    - onPeerUpdate       → add/remove remote peer
+    - onTrackUpdate      → swap video tracks
+    - onReconnecting     → bloc emits InCall(...isReconnecting: true)
+    - onReconnected      → emit with isReconnecting: false
+    - onHMSError         → bloc emits CallError(msg)
+         │
+         ▼
+  IN-CALL UI: HMSVideoView for each peer + control row
+         │
+         ▼
+  USER TAPS END (or trainer ends for all)
+         │
+         ▼
+  CallService.leave()
+  Capture endedAt, durationSec = endedAt - startedAt
+  POST /session-logs { memberId, trainerId, startedAt, endedAt, durationSec }
+  Navigate to post-call sheet
+         │
+         ▼
+  Post-call submit → PATCH /session-logs/:id with rating/notes
+```
+
+**Key SDK gotchas** (from 100ms Flutter docs):
+- Call `await hmsSDK.build()` before `join` — common bug if forgotten.
+- Permissions (`camera`, `microphone`, `bluetoothConnect`) MUST be granted before `join` or you'll join muted with no video.
+- Use `HMSVideoView(track: track)` for rendering. Track must not be null/muted.
+- `getAuthTokenByRoomCode` is the room-code shortcut — useful only if you have meeting URLs from the dashboard. We're using direct JWTs from the server, so skip this.
+- Android: `minSdkVersion 21`. iOS: `platform :ios, '12.0'`.
+
+---
+
+## 6. State flow for chat
+
+```
+Guru sends "Hi Coach 👋"
+   │
+   ChatBloc.add(SendMessage(...))
+   ├─ Bloc emits optimistic ChatLoaded with message status=sending
+   └─ api.post('/messages', body: {...})
+              │
+              ▼
+   token_server stores message, broadcasts SSE to Aarav
+              │
+              ▼
+   Trainer's EventStreamClient receives the SSE frame
+   ├─ Fans out to ChatListBloc → updates unread counts
+   └─ Fans out to ChatBloc (if conversation open) → appends message
+              │
+              ▼
+   Trainer opens conversation
+   ├─ ChatBloc.add(MarkRead([msgId]))
+   ├─ api.post('/messages/{id}/read')
+   └─ Server broadcasts read receipt SSE to Guru
+              │
+              ▼
+   Guru's ChatBloc receives → updates status to MessageStatus.read
+   UI: ✓✓ double tick appears
+```
+
+Round-trip target: under 2s via SSE, ~3s worst-case via polling.
+
+---
+
+## 7. Where each rubric category is satisfied
+
+| Rubric category | Pts | Where it lives |
+|---|---:|---|
+| Architecture & code quality | 20 | This doc + `bloc_patterns.md` + lint-clean codebase |
+| Chat UX & reliability | 15 | `features/chat/` in both apps + token_server `messages.js` + SSE |
+| Scheduler & workflow | 10 | `features/schedule/` + token_server `call_requests.js` + validators |
+| 100ms calls | 25 | `shared/services/call_service.dart` + `features/call/` + token_server `token.js` |
+| Session logs & ratings | 10 | `features/sessions/` + token_server `session_logs.js` |
+| AI-native proof | 10 | `AI_LEDGER.md` at repo root |
+| Polish & DX | 10 | DevPanel + error states + `README.md` + demo video |

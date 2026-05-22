@@ -1,0 +1,32 @@
+name: wtf_shared
+description: "Shared models, services, and widgets for WTF Flutter assessment."
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.10.7
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  equatable: ^2.0.5
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  http: ^1.2.1
+  intl: ^0.20.1
+  uuid: ^4.4.0
+  hmssdk_flutter: ^1.10.7
+  permission_handler: ^11.3.1
+  flutter_bloc: ^8.1.6
+  bloc_concurrency: ^0.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.9
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true

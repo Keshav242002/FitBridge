@@ -1,0 +1,50 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+*.ipr
+*.iws
+.idea/
+*.log
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/Runner.xcworkspace/
+
+# Android
+android/.gradle/
+android/captures/
+android/local.properties
+android/key.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/gradle/
+
+# Secrets
+.env
+token_server/.env
+*.env.local
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Token server data
+token_server/data.json
+
+# macOS
+.DS_Store
+
+# Coverage
+coverage/
+lcov.info

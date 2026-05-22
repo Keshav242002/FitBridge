@@ -1,0 +1,34 @@
+name: trainer_app
+description: "Trainer App — Trainer-facing Flutter app for WTF assessment."
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  wtf_shared:
+    path: ../shared
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  http: ^1.2.1
+  intl: ^0.20.1
+  uuid: ^4.4.0
+  hmssdk_flutter: ^1.10.7
+  permission_handler: ^11.3.1
+  bloc_concurrency: ^0.2.5
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
