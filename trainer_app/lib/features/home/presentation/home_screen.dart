@@ -120,8 +120,10 @@ class _HomeTile extends StatelessWidget {
       case _Dest.chats:
         Navigator.of(context)
             .push(MaterialPageRoute<void>(builder: (_) => const ChatListPage()));
-      case _Dest.members:
       case _Dest.requests:
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const RequestsScreen()));
+      case _Dest.members:
       case _Dest.sessions:
         break;
     }
