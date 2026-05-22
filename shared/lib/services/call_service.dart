@@ -18,9 +18,10 @@ Future<bool> ensureCallPermissions() async {
   return (await Permission.camera.isGranted) && (await Permission.microphone.isGranted);
 }
 
-class CallService implements HMSUpdateListener {
+class CallService implements HMSUpdateListener, HMSPreviewListener {
   late HMSSDK _sdk;
   bool _built = false;
+  bool _previewing = false;
 
   final _joinedCtrl = StreamController<HMSRoom>.broadcast();
   final _peerUpdateCtrl =
@@ -31,6 +32,10 @@ class CallService implements HMSUpdateListener {
   final _reconnectedCtrl = StreamController<void>.broadcast();
   final _errorCtrl = StreamController<HMSException>.broadcast();
   final _leftCtrl = StreamController<void>.broadcast();
+  final _authExpiredCtrl = StreamController<void>.broadcast();
+  final _previewTrackCtrl = StreamController<HMSVideoTrack?>.broadcast();
+  final _audioDeviceCtrl =
+      StreamController<({HMSAudioDevice? current, List<HMSAudioDevice>? available})>.broadcast();
 
   Stream<HMSRoom> get joinedStream => _joinedCtrl.stream;
   Stream<({HMSPeer peer, HMSPeerUpdate update})> get peerUpdateStream =>
@@ -41,18 +46,75 @@ class CallService implements HMSUpdateListener {
   Stream<void> get reconnectedStream => _reconnectedCtrl.stream;
   Stream<HMSException> get errorStream => _errorCtrl.stream;
   Stream<void> get leftStream => _leftCtrl.stream;
+  Stream<void> get authExpiredStream => _authExpiredCtrl.stream;
+  Stream<HMSVideoTrack?> get previewTrackStream => _previewTrackCtrl.stream;
+  Stream<({HMSAudioDevice? current, List<HMSAudioDevice>? available})> get audioDeviceStream =>
+      _audioDeviceCtrl.stream;
 
   Future<void> _ensureBuilt() async {
     if (_built) return;
     _sdk = HMSSDK();
     await _sdk.build();
-    _sdk.addUpdateListener(listener: this);
     _built = true;
   }
+
+  // ===== Preview API =====
+
+  Future<void> startPreview({required String token, required String userName}) async {
+    Log.rtc('starting preview as $userName');
+    await _ensureBuilt();
+    _previewing = true;
+    _sdk.addPreviewListener(listener: this);
+    await _sdk.preview(config: HMSConfig(authToken: token, userName: userName));
+  }
+
+  Future<void> stopPreview() async {
+    if (!_previewing) return;
+    Log.rtc('stopping preview');
+    _previewing = false;
+    _sdk.removePreviewListener(listener: this);
+    _previewTrackCtrl.add(null);
+  }
+
+  // ===== HMSPreviewListener =====
+
+  @override
+  void onPreview({required HMSRoom room, required List<HMSTrack> localTracks}) {
+    Log.rtc('onPreview localTracks=${localTracks.length}');
+    for (final track in localTracks) {
+      if (track is HMSVideoTrack) {
+        _previewTrackCtrl.add(track);
+        return;
+      }
+    }
+    _previewTrackCtrl.add(null);
+  }
+
+  @override
+  void onPeerUpdate({required HMSPeer peer, required HMSPeerUpdate update}) {
+    _peerUpdateCtrl.add((peer: peer, update: update));
+  }
+
+  @override
+  void onAudioDeviceChanged(
+      {HMSAudioDevice? currentAudioDevice,
+      List<HMSAudioDevice>? availableAudioDevice}) {
+    Log.rtc('audioDeviceChanged: $currentAudioDevice');
+    _audioDeviceCtrl.add((current: currentAudioDevice, available: availableAudioDevice));
+  }
+
+  @override
+  void onRoomUpdate({required HMSRoom room, required HMSRoomUpdate update}) {}
+
+  // ===== Join / Leave / Controls =====
 
   Future<void> join({required String token, required String userName}) async {
     Log.rtc('joining as $userName');
     await _ensureBuilt();
+    if (_previewing) {
+      await stopPreview();
+    }
+    _sdk.addUpdateListener(listener: this);
     await _sdk.join(config: HMSConfig(authToken: token, userName: userName));
   }
 
@@ -79,6 +141,9 @@ class CallService implements HMSUpdateListener {
     await _reconnectedCtrl.close();
     await _errorCtrl.close();
     await _leftCtrl.close();
+    await _authExpiredCtrl.close();
+    await _previewTrackCtrl.close();
+    await _audioDeviceCtrl.close();
   }
 
   // ===== HMSUpdateListener =====
@@ -87,11 +152,6 @@ class CallService implements HMSUpdateListener {
   void onJoin({required HMSRoom room}) {
     Log.rtc('onJoin room=${room.id}');
     _joinedCtrl.add(room);
-  }
-
-  @override
-  void onPeerUpdate({required HMSPeer peer, required HMSPeerUpdate update}) {
-    _peerUpdateCtrl.add((peer: peer, update: update));
   }
 
   @override
@@ -120,8 +180,17 @@ class CallService implements HMSUpdateListener {
 
   @override
   void onHMSError({required HMSException error}) {
-    Log.rtc('error=${error.code?.errorCode} ${error.message}');
-    _errorCtrl.add(error);
+    Log.rtc('error code=${error.code?.errorCode} ${error.message}');
+    if (_isAuthError(error)) {
+      _authExpiredCtrl.add(null);
+    } else {
+      _errorCtrl.add(error);
+    }
+  }
+
+  bool _isAuthError(HMSException e) {
+    final code = e.code?.errorCode;
+    return code == 1003 || code == 4005;
   }
 
   @override
@@ -130,11 +199,6 @@ class CallService implements HMSUpdateListener {
     Log.rtc('removedFromRoom');
     _leftCtrl.add(null);
   }
-
-  @override
-  void onAudioDeviceChanged(
-      {HMSAudioDevice? currentAudioDevice,
-      List<HMSAudioDevice>? availableAudioDevice}) {}
 
   @override
   void onSessionStoreAvailable({HMSSessionStore? hmsSessionStore}) {}
@@ -148,9 +212,6 @@ class CallService implements HMSUpdateListener {
 
   @override
   void onRoleChangeRequest({required HMSRoleChangeRequest roleChangeRequest}) {}
-
-  @override
-  void onRoomUpdate({required HMSRoom room, required HMSRoomUpdate update}) {}
 
   @override
   void onUpdateSpeakers({required List<HMSSpeaker> updateSpeakers}) {}

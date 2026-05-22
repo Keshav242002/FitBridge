@@ -8,6 +8,18 @@ This file is required evidence of AI-native workflow. Every meaningful use of an
 
 ---
 
+### Entry 15 — Phase 8: Gap-Closure (13 audit items)
+- **Tool**: Antigravity (Google DeepMind)
+- **Time**: ~2026-05-22 22:20
+- **Phase**: 8
+- **Intent**: Address all 13 gaps identified by independent audit against project_spec.md. HIGH: Members tile (8.1), trainer rename (8.2), camera preview (8.3). MEDIUM: dynamic room creation (8.4), token refresh (8.5), peer-left feedback (8.6), app lifecycle (8.7), chat latency (8.8). LOW: chat FAB (8.9), audio device (8.10), color constants (8.11), AI-tagged commits (8.12), dummy avatars (8.13).
+- **Prompt summary**: Full spec audit document with 13 numbered tasks, priority ordering, and engineering constraints (BLoC only, single ApiClient, no secrets in repo). Researched entire codebase before writing plan, then executed all 13 tasks sequentially.
+- **Output use**: Adapted. Key adaptations: (1) CallService rewritten to implement both HMSUpdateListener AND HMSPreviewListener — required understanding that `preview()` returns tracks via `onPreview` callback, not `onJoin`. (2) Token refresh uses one-shot retry pattern to prevent infinite loops. (3) App lifecycle dispatches events to CallBloc via global `activeCallBloc` reference since the bloc is created per-call in PreJoinPage, not at app root. (4) Dynamic room creation in call_requests.js required making the PATCH handler `async` since `createHmsRoom()` calls the 100ms Management API over HTTP.
+- **Commit**: `feat: phase 8 gap-closure — members, preview, dynamic rooms, token refresh, lifecycle, polish [AI-assisted]`
+- **Notes**: All `dart analyze` clean on 3 packages. 15/15 test assertions pass. Chat latency reduced 1500ms→500ms. 6 previously documented known limitations reduced to 3 (camera preview now works, token refresh implemented, chat latency improved).
+
+---
+
 ### Entry 14 — Phase 7: Documentation (README, ARCHITECTURE, DECISIONS, DEMO_SCRIPT)
 - **Tool**: Claude Code
 - **Time**: ~2026-05-22 19:30

@@ -5,29 +5,99 @@ import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 import '../bloc/call_bloc.dart';
 import 'post_call_page.dart';
 
-class InCallPage extends StatelessWidget {
+class InCallPage extends StatefulWidget {
   const InCallPage({super.key});
 
   @override
+  State<InCallPage> createState() => _InCallPageState();
+}
+
+class _InCallPageState extends State<InCallPage> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final bloc = context.read<CallBloc>();
+    switch (state) {
+      case AppLifecycleState.paused:
+        bloc.add(const AppBackgrounded());
+      case AppLifecycleState.resumed:
+        bloc.add(const AppForegrounded());
+      default:
+        break;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<CallBloc, CallState>(
-      listener: (ctx, state) {
-        if (state is CallEnded) {
-          Navigator.of(ctx).pushReplacement(
-            MaterialPageRoute<void>(
-              builder: (_) => BlocProvider.value(
-                value: ctx.read<CallBloc>(),
-                child: PostCallPage(endedState: state),
-              ),
-            ),
-          );
-        }
-        if (state is CallError) {
-          ScaffoldMessenger.of(ctx).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CallBloc, CallState>(
+          listener: (ctx, state) {
+            if (state is CallEnded) {
+              Navigator.of(ctx).pushReplacement(
+                MaterialPageRoute<void>(
+                  builder: (_) => BlocProvider.value(
+                    value: ctx.read<CallBloc>(),
+                    child: PostCallPage(endedState: state),
+                  ),
+                ),
+              );
+            }
+            if (state is CallError) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
+          },
+        ),
+        BlocListener<CallBloc, CallState>(
+          listenWhen: (prev, curr) {
+            if (curr is CallInCall && curr.peerJustLeft) return true;
+            return false;
+          },
+          listener: (ctx, state) {
+            if (state is CallInCall && state.peerJustLeft) {
+              final name = state.peerLeftName ?? 'Remote peer';
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text('$name left the call'),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<CallBloc, CallState>(
+          listenWhen: (prev, curr) {
+            if (prev is CallInCall && curr is CallInCall) {
+              return prev.audioDeviceName != curr.audioDeviceName &&
+                  curr.audioDeviceName != null;
+            }
+            return false;
+          },
+          listener: (ctx, state) {
+            if (state is CallInCall && state.audioDeviceName != null) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text('Audio routed to ${state.audioDeviceName}'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: BlocBuilder<CallBloc, CallState>(
         builder: (ctx, state) {
           if (state is CallInCall) {

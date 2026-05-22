@@ -26,7 +26,7 @@ class ChatService {
     _ctrl = StreamController<Message>.broadcast();
     _typingCtrl = StreamController<bool>.broadcast();
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 1500), (_) => _poll());
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) => _poll());
     return _ctrl!.stream;
   }
 

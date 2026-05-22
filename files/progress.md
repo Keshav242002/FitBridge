@@ -14,6 +14,37 @@
 
 ---
 
+## 2026-05-22 22:20 — Phase 8 gap-closure starting
+
+- Phase 8 gap-closure pass addressing 13 audit findings against spec
+- Working all tasks in priority order: HIGH → MEDIUM → LOW
+
+## 2026-05-22 22:50 — Phase 8 complete
+
+### HIGH priority (done)
+- 8.1 Members tile: MembersBloc + MembersListPage + MemberDetailPage (profile + last 3 sessions). Trainer home _Dest.members wired. Empty state included. Exports added to wtf_shared.dart.
+- 8.2 Trainer rename: "Aarav" → "Aarav (Lead Trainer)" in store.js + auth_service.dart. data.json deleted for re-seed.
+- 8.3 Camera preview: CallService implements HMSPreviewListener with startPreview()/stopPreview(). PreviewTrack stream → CallPreJoin state → HMSVideoView in PreJoinPage. Falls back to avatar initial if preview unavailable.
+
+### MEDIUM priority (done)
+- 8.4 Dynamic rooms: hms.js adds signManagementToken() + createHmsRoom() via Management API. call_requests.js approve handler now async, tries dynamic room creation, falls back to HMS_ROOM_ID. HMS_TEMPLATE_ID added to .env.example.
+- 8.5 Token refresh: CallService detects auth errors (code 1003/4005) → authExpiredStream. CallBloc subscribes, fetches fresh token, re-joins with one retry cap.
+- 8.6 Peer-left: CallInCall state gains peerJustLeft + peerLeftName. InCallPage BlocListener shows "{name} left the call" snackbar.
+- 8.7 App lifecycle: InCallPage adds WidgetsBindingObserver. AppBackgrounded → mute video. AppForegrounded → restore video. Uses global activeCallBloc reference.
+- 8.8 Chat latency: polling interval reduced 1500ms → 500ms in ChatService.
+
+### LOW priority (done)
+- 8.9 Chat FAB: FloatingActionButton '+' added to ChatListPage, opens ConversationPage.
+- 8.10 Audio device: CallService.onAudioDeviceChanged → audioDeviceStream → InCallPage snackbar "Audio routed to {device}".
+- 8.11 Color constants: WtfColors class in shared/lib/utils/colors.dart with spec hex codes. Replaced ad-hoc Colors.red/green in trainer home + login screens.
+- 8.12 AI-tagged commits: all Phase 8 commits will include [AI-assisted] tags.
+- 8.13 Dummy avatars: existing CircleAvatar(initial) pattern serves as dummy avatar per spec.
+
+### Verification
+- `dart analyze`: No issues on all 3 packages
+- `flutter test`: 15/15 assertions pass (message 4/4, schedule 7/7, session 4/4). 
+- Files touched: shared/lib/features/members/**, shared/lib/features/call/**, shared/lib/services/call_service.dart, shared/lib/services/chat_service.dart, shared/lib/services/auth_service.dart, shared/lib/utils/colors.dart, shared/lib/wtf_shared.dart, shared/lib/features/chat/presentation/chat_list_page.dart, trainer_app/lib/features/home/presentation/home_screen.dart, trainer_app/lib/features/auth/presentation/login_screen.dart, token_server/src/store.js, token_server/src/hms.js, token_server/src/routes/call_requests.js, token_server/.env.example
+
 ## 2026-05-22 19:30 — Phase 7 complete: Documentation, AI_LEDGER finalized
 
 - README.md: one-line description, prerequisites (Flutter 3.x, Node 20+), setup commands, run commands with --dart-define, project structure, rubric scoring map, 7 known limitations

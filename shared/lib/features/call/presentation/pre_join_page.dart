@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 
 import '../../../services/api_client.dart';
 import '../../../services/call_service.dart';
@@ -94,15 +95,29 @@ class _PreJoinBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(),
-          const Icon(Icons.videocam_rounded, size: 64, color: Colors.black38),
+          const SizedBox(height: 16),
+          // Camera preview area
+          Expanded(
+            flex: 3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                color: Colors.black87,
+                child: _CameraPreview(
+                  previewTrack: state.previewTrack,
+                  isVideoOn: state.isVideoOn,
+                  userName: state.userName,
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
           Text(
             'Ready to join? Check mic and camera.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -129,10 +144,80 @@ class _PreJoinBody extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              context.read<CallBloc>().callService.stopPreview();
+              Navigator.of(context).pop();
+            },
             child: const Text('Cancel'),
           ),
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _CameraPreview extends StatelessWidget {
+  const _CameraPreview({
+    required this.previewTrack,
+    required this.isVideoOn,
+    required this.userName,
+  });
+
+  final HMSVideoTrack? previewTrack;
+  final bool isVideoOn;
+  final String userName;
+
+  @override
+  Widget build(BuildContext context) {
+    if (previewTrack != null && isVideoOn) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          HMSVideoView(
+            track: previewTrack!,
+            setMirror: true,
+          ),
+          Positioned(
+            bottom: 8,
+            left: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                userName,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 48,
+            backgroundColor: Colors.grey.shade800,
+            child: Text(
+              userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 36,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            isVideoOn ? 'Starting camera...' : 'Camera off',
+            style: const TextStyle(color: Colors.white60, fontSize: 13),
+          ),
         ],
       ),
     );

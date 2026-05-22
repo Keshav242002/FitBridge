@@ -34,4 +34,52 @@ function mintAppToken({ userId, role, roomId }) {
   throw new Error('No HMS credentials configured. Set HMS_APP_ACCESS_KEY + HMS_APP_SECRET in .env, or set HMS_FALLBACK_TOKEN.');
 }
 
-module.exports = { mintAppToken };
+function signManagementToken() {
+  const accessKey = process.env.HMS_APP_ACCESS_KEY;
+  const secret    = process.env.HMS_APP_SECRET;
+  if (!accessKey || !secret) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  return jwt.sign(
+    {
+      access_key: accessKey,
+      type: 'management',
+      version: 2,
+      iat: now,
+      nbf: now,
+      exp: now + 86400,
+      jti: uuidv4(),
+    },
+    secret,
+    { algorithm: 'HS256' }
+  );
+}
+
+async function createHmsRoom({ name, templateId }) {
+  const mgmtToken = signManagementToken();
+  if (!mgmtToken) {
+    throw new Error('No HMS credentials for management token');
+  }
+
+  const res = await fetch('https://api.100ms.live/v2/rooms', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${mgmtToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name,
+      template_id: templateId,
+      description: `WTF call ${name}`,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`HMS room create failed: ${res.status} ${await res.text()}`);
+  }
+
+  const data = await res.json();
+  return data.id;
+}
+
+module.exports = { mintAppToken, signManagementToken, createHmsRoom };

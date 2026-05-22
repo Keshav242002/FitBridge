@@ -90,6 +90,6 @@ Server creates a 100ms room via the Management API when a call request is **appr
 
 ### Known limitations
 
-1. **Token expiry not retried.** 100ms tokens are short-lived (default 2h). If a call runs past token expiry, the SDK will disconnect. Workaround: regenerate `HMS_FALLBACK_TOKEN` from the dashboard before a long demo. A proper fix would implement token refresh via a `POST /token/refresh` endpoint and an SDK re-join sequence.
+1. **Token expiry retry capped at 1.** 100ms tokens are short-lived (default 24h with JWT, 2h with fallback). CallBloc implements one retry on auth expired errors — it fetches a fresh token from `POST /token` and re-joins. A second expiry emits `CallError`. This prevents infinite retry loops.
 2. **One trainer–member pair in v1.** Room lookup uses `callRequestId`; the schema supports multiple members per trainer, but the UI surfaces only the Aarav ↔ DK conversation.
 3. **No TURN server configuration.** 100ms manages TURN internally; no custom TURN is configured. On restricted corporate networks, calls may fail to establish.

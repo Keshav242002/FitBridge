@@ -1,30 +1,15 @@
-// This is a basic Flutter widget test.
+// Basic smoke test for the Trainer App.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Full unit tests live in shared/test/ (message_test, schedule_validator_test,
+// session_duration_test). This file verifies the app widget can be created.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:trainer_app/main.dart';
+import 'package:trainer_app/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('TrainerApp smoke test — renders without crashing', (tester) async {
+    await tester.pumpWidget(const TrainerApp());
+    // App should render the login screen since no user is logged in
+    expect(find.text('WTF Trainer'), findsOneWidget);
   });
 }

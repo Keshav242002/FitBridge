@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wtf_shared/wtf_shared.dart';
 import '../bloc/login_bloc.dart';
 import '../../home/presentation/home_screen.dart';
 
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
       listener: (context, state) {
         if (state is LoginFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red[700]),
+            SnackBar(content: Text(state.message), backgroundColor: WtfColors.error),
           );
         }
         if (state is LoginSuccess) {

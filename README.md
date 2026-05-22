@@ -138,10 +138,10 @@ Unit tests: `message_test.dart`, `schedule_validator_test.dart`, `session_durati
 
 | # | Limitation | Workaround / Plan |
 |---|------------|-------------------|
-| 1 | Chat latency ~1.5s | Polling fallback (SSE client not implemented). Documented trade-off vs complexity. |
-| 2 | No live camera preview on Pre-Join screen | SDK requires a room join before tracks are available. Pre-Join shows mic/cam toggles without preview. |
-| 3 | 100ms fallback token expires in 2h | Regenerate `HMS_FALLBACK_TOKEN` from the 100ms dashboard if the demo runs long. |
-| 4 | Token expiry retry not implemented | On token expiry mid-call, user must rejoin. Documented in DECISIONS.md ADR-3. |
-| 5 | Single conversation (Aarav ↔ DK) | v1 supports one trainer–member pair. ChatList UI is list-ready for multi-pair expansion. |
-| 6 | Bonuses not implemented | Local notifications, image attachments, offline send queue, dark mode, session export all cut to meet timebox. |
-| 7 | Real device requires manual LAN IP | Pass `--dart-define=API_BASE_URL=http://<host-lan-ip>:8787` when running on a physical device. |
+| 1 | Chat latency ~500ms | Polling at 500ms; SSE client not implemented. Acceptable for demo. |
+| 2 | 100ms fallback token expires in 2h | Regenerate `HMS_FALLBACK_TOKEN` from the 100ms dashboard if the demo runs long. |
+| 3 | Token expiry retry capped at 1 | On second token expiry mid-call, user must rejoin. Documented in DECISIONS.md ADR-3. |
+| 4 | Single conversation (Aarav ↔ DK) | v1 supports one trainer–member pair. ChatList UI is list-ready for multi-pair expansion. |
+| 5 | Bonuses not implemented | Local notifications, image attachments, offline send queue, dark mode, session export all cut to meet timebox. |
+| 6 | Real device requires manual LAN IP | Pass `--dart-define=API_BASE_URL=http://<host-lan-ip>:8787` when running on a physical device. |
+

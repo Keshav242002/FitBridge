@@ -7,7 +7,7 @@ const DATA_FILE = process.env.DATA_FILE || './data.json';
 const WRITE_DEBOUNCE_MS = 200;
 
 const SEEDED_USERS = {
-  tr_aarav: { id: 'tr_aarav', role: 'trainer', name: 'Aarav', email: 'aarav@wtf.local', avatarUrl: null, assignedTrainerId: null },
+  tr_aarav: { id: 'tr_aarav', role: 'trainer', name: 'Aarav (Lead Trainer)', email: 'aarav@wtf.local', avatarUrl: null, assignedTrainerId: null },
   mb_dk:    { id: 'mb_dk',    role: 'member',  name: 'DK',    email: 'dk@wtf.local',    avatarUrl: null, assignedTrainerId: 'tr_aarav' },
 };
 

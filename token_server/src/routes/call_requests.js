@@ -3,6 +3,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const store = require('../store');
+const { createHmsRoom } = require('../hms');
 const { emit } = require('./events');
 
 const router = express.Router();
@@ -67,7 +68,7 @@ router.post('/', (req, res) => {
 });
 
 // PATCH /call-requests/:id
-router.patch('/:id', (req, res) => {
+router.patch('/:id', async (req, res) => {
   const { status, declineReason } = req.body || {};
   const cr = store.getCallRequest(req.params.id);
   if (!cr) return res.status(404).json({ error: 'Call request not found' });
@@ -82,7 +83,19 @@ router.patch('/:id', (req, res) => {
 
   let roomMeta = null;
   if (status === 'approved') {
-    const hmsRoomId = process.env.HMS_ROOM_ID || 'room_placeholder';
+    let hmsRoomId;
+    const templateId = process.env.HMS_TEMPLATE_ID;
+    if (templateId) {
+      try {
+        hmsRoomId = await createHmsRoom({ name: `call-${cr.id}`, templateId });
+        console.log(`[hms] created room ${hmsRoomId} for call ${cr.id}`);
+      } catch (e) {
+        console.warn('[hms] room create failed, falling back to HMS_ROOM_ID:', e.message);
+        hmsRoomId = process.env.HMS_ROOM_ID || 'room_placeholder';
+      }
+    } else {
+      hmsRoomId = process.env.HMS_ROOM_ID || 'room_placeholder';
+    }
     roomMeta = {
       id: uuidv4(),
       callRequestId: cr.id,

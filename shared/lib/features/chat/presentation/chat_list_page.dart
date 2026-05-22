@@ -34,6 +34,13 @@ class _ChatListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Chats')),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'chat_fab',
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const ConversationPage()),
+        ),
+        child: const Icon(Icons.add),
+      ),
       body: BlocBuilder<ChatListBloc, ChatListState>(
         builder: (ctx, state) {
           return switch (state) {

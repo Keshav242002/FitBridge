@@ -26,6 +26,7 @@ final class CallPreJoin extends CallState {
     required this.trainerId,
     this.isMicOn = true,
     this.isVideoOn = true,
+    this.previewTrack,
   });
 
   final String token;
@@ -38,14 +39,21 @@ final class CallPreJoin extends CallState {
   final String trainerId;
   final bool isMicOn;
   final bool isVideoOn;
+  final HMSVideoTrack? previewTrack;
 
   @override
   List<Object?> get props => [
         token, roomId, callRequestId, userId, userName,
         role, memberId, trainerId, isMicOn, isVideoOn,
+        previewTrack,
       ];
 
-  CallPreJoin copyWith({bool? isMicOn, bool? isVideoOn}) => CallPreJoin(
+  CallPreJoin copyWith({
+    bool? isMicOn,
+    bool? isVideoOn,
+    HMSVideoTrack? Function()? previewTrack,
+  }) =>
+      CallPreJoin(
         token: token,
         roomId: roomId,
         callRequestId: callRequestId,
@@ -56,6 +64,7 @@ final class CallPreJoin extends CallState {
         trainerId: trainerId,
         isMicOn: isMicOn ?? this.isMicOn,
         isVideoOn: isVideoOn ?? this.isVideoOn,
+        previewTrack: previewTrack != null ? previewTrack() : this.previewTrack,
       );
 }
 
@@ -77,6 +86,10 @@ final class CallInCall extends CallState {
     this.isMicOn = true,
     this.isVideoOn = true,
     this.isReconnecting = false,
+    this.wasBackgrounded = false,
+    this.peerJustLeft = false,
+    this.peerLeftName,
+    this.audioDeviceName,
   });
 
   final String callRequestId;
@@ -91,12 +104,17 @@ final class CallInCall extends CallState {
   final bool isMicOn;
   final bool isVideoOn;
   final bool isReconnecting;
+  final bool wasBackgrounded;
+  final bool peerJustLeft;
+  final String? peerLeftName;
+  final String? audioDeviceName;
 
   @override
   List<Object?> get props => [
         callRequestId, memberId, trainerId, userId, startedAt,
         localPeer, remotePeer, localVideoTrack, remoteVideoTrack,
-        isMicOn, isVideoOn, isReconnecting,
+        isMicOn, isVideoOn, isReconnecting, wasBackgrounded,
+        peerJustLeft, peerLeftName, audioDeviceName,
       ];
 
   CallInCall copyWith({
@@ -107,6 +125,10 @@ final class CallInCall extends CallState {
     bool? isMicOn,
     bool? isVideoOn,
     bool? isReconnecting,
+    bool? wasBackgrounded,
+    bool? peerJustLeft,
+    String? Function()? peerLeftName,
+    String? Function()? audioDeviceName,
   }) =>
       CallInCall(
         callRequestId: callRequestId,
@@ -123,6 +145,10 @@ final class CallInCall extends CallState {
         isMicOn: isMicOn ?? this.isMicOn,
         isVideoOn: isVideoOn ?? this.isVideoOn,
         isReconnecting: isReconnecting ?? this.isReconnecting,
+        wasBackgrounded: wasBackgrounded ?? this.wasBackgrounded,
+        peerJustLeft: peerJustLeft ?? false,
+        peerLeftName: peerLeftName != null ? peerLeftName() : this.peerLeftName,
+        audioDeviceName: audioDeviceName != null ? audioDeviceName() : this.audioDeviceName,
       );
 }
 

@@ -48,6 +48,14 @@ final class EndCall extends CallEvent {
   const EndCall();
 }
 
+final class AppBackgrounded extends CallEvent {
+  const AppBackgrounded();
+}
+
+final class AppForegrounded extends CallEvent {
+  const AppForegrounded();
+}
+
 // Private stream-driven events — extend CallEvent (inherits Equatable via base)
 final class _PeerUpdated extends CallEvent {
   const _PeerUpdated(this.peer, this.update);
@@ -87,4 +95,23 @@ final class _SdkError extends CallEvent {
   final HMSException error;
   @override
   List<Object?> get props => [error];
+}
+
+final class _AuthExpired extends CallEvent {
+  const _AuthExpired();
+}
+
+final class _PreviewTrackReceived extends CallEvent {
+  const _PreviewTrackReceived(this.track);
+  final HMSVideoTrack? track;
+  @override
+  List<Object?> get props => [track];
+}
+
+final class _AudioDeviceChanged extends CallEvent {
+  const _AudioDeviceChanged(this.current, this.available);
+  final HMSAudioDevice? current;
+  final List<HMSAudioDevice>? available;
+  @override
+  List<Object?> get props => [current, available];
 }

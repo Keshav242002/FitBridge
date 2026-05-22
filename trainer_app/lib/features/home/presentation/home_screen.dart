@@ -60,12 +60,12 @@ class _HealthFabState extends State<_HealthFab> {
         messenger.showSnackBar(
           SnackBar(
             content: Text('Server OK — hmsMode: ${(body as Map)['hmsMode']}'),
-            backgroundColor: Colors.green[700],
+            backgroundColor: WtfColors.success,
           ),
         );
       case ApiFailure(:final message):
         messenger.showSnackBar(
-          SnackBar(content: Text('Server error: $message'), backgroundColor: Colors.red[700]),
+          SnackBar(content: Text('Server error: $message'), backgroundColor: WtfColors.error),
         );
     }
   }
@@ -138,7 +138,8 @@ class _HomeTile extends StatelessWidget {
           ),
         );
       case _Dest.members:
-        break;
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const MembersListPage()));
     }
   }
 }

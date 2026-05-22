@@ -8,7 +8,7 @@ const _usersBox = 'users';
 final _seededTrainer = User(
   id: 'tr_aarav',
   role: UserRole.trainer,
-  name: 'Aarav',
+  name: 'Aarav (Lead Trainer)',
   email: 'aarav@wtf.local',
 );
 
