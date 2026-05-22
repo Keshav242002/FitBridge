@@ -41,6 +41,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Guru needs camera access for video calls with your trainer.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Guru needs microphone access for voice during calls.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Guru uses your local network for video call connectivity.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Guru needs Bluetooth to connect to your audio devices.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

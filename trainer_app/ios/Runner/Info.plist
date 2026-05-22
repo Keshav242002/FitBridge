@@ -41,6 +41,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Trainer needs camera access for video calls with members.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Trainer needs microphone access for voice during calls.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Trainer uses your local network for video call connectivity.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Trainer needs Bluetooth to connect to your audio devices.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

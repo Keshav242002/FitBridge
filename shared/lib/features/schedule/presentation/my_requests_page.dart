@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../models/call_request.dart';
+import '../../../models/user.dart';
 import '../../../services/api_client.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/schedule_service.dart';
+import '../../call/presentation/pre_join_page.dart';
 
 class MyRequestsPage extends StatefulWidget {
   const MyRequestsPage({super.key});
@@ -143,7 +145,19 @@ class _RequestCard extends StatelessWidget {
             if (canJoin) ...[
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  final user = AuthService.currentUser()!;
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => PreJoinPage(
+                      callRequestId: request.id,
+                      userId: user.id,
+                      userName: user.name,
+                      role: UserRole.member.name,
+                      memberId: user.id,
+                      trainerId: request.trainerId,
+                    ),
+                  ));
+                },
                 icon: const Icon(Icons.videocam, size: 18),
                 label: const Text('Join Call'),
               ),

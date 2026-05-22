@@ -8,6 +8,46 @@ This file is required evidence of AI-native workflow. Every meaningful use of an
 
 ---
 
+### Entry 10 — Phase 5: PostCallPage role-aware rating + notes
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 17:00
+- **Phase**: 5
+- **Intent**: Generate the post-call sheet that is role-aware: member sees star rating + optional note; trainer sees notes field + "Mark as complete". Both PATCH the session log.
+- **Prompt summary**: Asked for a single `PostCallPage` that detects role by comparing `endedState.userId` to `endedState.trainerId`, renders the appropriate form, and PATCHes `/session-logs/:id` with the correct fields before showing the "Session saved to your logs." confirmation screen.
+- **Output use**: Used as-is. Removed an unused `user.dart` import flagged by IDE diagnostics. Used `PopScope(canPop: _submitted)` to prevent back-nav before the form is submitted or skipped.
+- **Commit**: `feat: 100ms call integration`
+- **Notes**: Role detection via userId==trainerId avoids threading the UserRole enum through the CallEnded state — all necessary IDs are already in the state. The "Skip" path sets `_submitted = true` without calling the API, so the session log persists with server-defaults for rating/notes.
+
+### Entry 9 — Phase 5: InCallPage 2-peer grid + controls
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 16:45
+- **Phase**: 5
+- **Intent**: Build the in-call screen with a vertical 2-peer HMSVideoView grid, gradient control bar at the bottom, and a reconnecting overlay.
+- **Prompt summary**: Asked to implement `InCallPage` consuming `CallInCall` state: remote peer top, local peer bottom. Each tile shows `HMSVideoView` when track is not null and not muted, else a `CircleAvatar` with name initial. Controls: mic toggle, video toggle, flip camera, red end-call button.
+- **Output use**: Used as-is. The cross-file "Target of URI" error was a timing artifact from parallel file writes — resolved once `post_call_page.dart` existed on disk.
+- **Commit**: `feat: 100ms call integration`
+- **Notes**: `HMSVideoView` requires `setMirror: true` for the local track (front-camera selfie flip). Gradient overlay is `LinearGradient(bottomCenter → topCenter, black87 → transparent)` so it blends into the video without blocking the feed.
+
+### Entry 8 — Phase 5: PreJoinPage permissions + mic/cam toggles
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 16:30
+- **Phase**: 5
+- **Intent**: Build the pre-join screen that fires `PrepareJoin` on create, requests permissions, shows mic/cam toggles, and navigates to `InCallPage` when `CallJoining` is emitted.
+- **Prompt summary**: Asked for `PreJoinPage` as a `StatelessWidget` that creates `CallBloc` and dispatches `PrepareJoin` in one step, shows a spinner during `CallPreparing`, a form during `CallPreJoin`, and uses `BlocListener` to push `InCallPage` on `CallJoining` via `BlocProvider.value` so the same bloc instance is shared.
+- **Output use**: Adapted. Hit a Dart type-promotion edge case: switch expression pattern `CallPreJoin() => _PreJoinBody(state: state as CallPreJoin)` triggered "unnecessary cast" because Dart promotes `state` to `CallPreJoin` after matching. Fixed to `_PreJoinBody(state: state)`.
+- **Commit**: `feat: 100ms call integration`
+- **Notes**: `BlocProvider.value` is critical here — it hands the existing `CallBloc` instance to `InCallPage` rather than creating a new one. Using `Navigator.pushReplacement` means the pre-join page is removed from the stack; back-nav from in-call lands back at requests.
+
+### Entry 7 — Phase 5: CallBloc state machine + CallService stream wiring
+- **Tool**: Claude Code
+- **Time**: ~2026-05-22 16:00
+- **Phase**: 5
+- **Intent**: Build the full `CallBloc` state machine that subscribes to all `CallService` streams in its constructor, drives the call lifecycle from permission check through session log POST, and persists pre-join context across the `CallJoining` state (which has no data fields).
+- **Prompt summary**: Asked for `CallBloc` with sealed events/states matching the spec: `PrepareJoin` fetches permissions then POSTs `/token`; `JoinNow` calls `callService.join()`; private `_Joined`, `_Left`, `_PeerUpdated`, `_TrackUpdated`, `_Reconnecting`, `_Reconnected`, `_SdkError` events wired from stream subscriptions; `_Left` POSTs session log and emits `CallEnded`.
+- **Output use**: Adapted. The `CallJoining` state has no fields, so pre-join context (callRequestId, memberId, trainerId, userId) would be lost when `_Joined` fired. Solved by stashing those fields in nullable instance variables in `onChange()` when the state transitions to `CallJoining`, then clearing them after `_onJoined` reads them.
+- **Commit**: `feat: 100ms call integration`
+- **Notes**: `HMSVideoTrack` is a subtype of `HMSTrack` — checking `e.track is HMSVideoTrack` before casting is required since audio tracks also arrive via `onTrackUpdate`. The `copyWith` on `CallInCall` uses `HMSVideoTrack? Function()?` for nullable track fields so callers can explicitly null them (muted video) vs leave them unchanged (null means "don't update").
+
 ### Entry 6 — Phase 3: real-time chat end-to-end (ChatService + ChatBloc + UI)
 - **Tool**: Claude Code
 - **Time**: ~2026-05-22 14:30

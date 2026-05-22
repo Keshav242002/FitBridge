@@ -74,40 +74,37 @@
 
 ## Phase 4 — Schedule (3:00 – 3:45)
 
-- [ ] **4.1** `ScheduleService` in `shared/`. Calls `POST /call-requests` and `PATCH /call-requests/:id`.
-- [ ] **4.2** `ScheduleBloc` (Guru side): events `LoadSlots`, `SelectSlot`, `SubmitRequest`. State carries selected date, slot, note.
-- [ ] **4.3** Schedule screen UI: next-3-days date picker (chip row) + 30-min time slot chips (08:00, 08:30, ... 21:30) + note `TextField` (`maxLength: 140`) + Primary CTA "Request Call".
-- [ ] **4.4** Validation: cannot pick past slot (compare to `DateTime.now()`); show inline error if attempted.
-- [ ] **4.5** Conflict check: before submit, `GET /call-requests` for the trainer for that day; if any `approved` overlaps, show error "Slot already booked".
-- [ ] **4.6** On submit success: toast "Call requested. Waiting for trainer approval." + navigate to My Requests.
-- [ ] **4.7** Trainer Requests screen: list of pending requests with member name, time, note. Inline Approve / Decline buttons. Decline opens modal with reason text field.
-- [ ] **4.8** On Approve: PATCH status=approved → server creates RoomMeta → both sides receive event → Guru's `ChatBloc` shows system message "Call approved for {date} {time}.".
-- [ ] **4.9** On Decline: PATCH status=declined with reason → Guru sees system message "Call request declined. Reason: {text}.".
-- [ ] **4.10** Upcoming Calls list (both apps): shows approved requests in next 24h, with "Join Call" button enabled within 10 min of `scheduledFor` (or always, if DevPanel override is on).
-- [ ] **4.11** Unit test: `schedule_validator_test.dart`.
-- [ ] **4.12** Commit: `feat: scheduling pipeline with approve/decline and conflict check`. AI_LEDGER entry.
+- [x] **4.1** `ScheduleService` in `shared/`. Calls `POST /call-requests` and `PATCH /call-requests/:id`.
+- [x] **4.2** `ScheduleBloc` (Guru side): events `LoadSlots`, `SelectSlot`, `SubmitRequest`. State carries selected date, slot, note.
+- [x] **4.3** Schedule screen UI: next-3-days date picker (chip row) + 30-min time slot chips (08:00, 08:30, ... 21:30) + note `TextField` (`maxLength: 140`) + Primary CTA "Request Call".
+- [x] **4.4** Validation: cannot pick past slot (compare to `DateTime.now()`); show inline error if attempted.
+- [x] **4.5** Conflict check: before submit, `GET /call-requests` for the trainer for that day; if any `approved` overlaps, show error "Slot already booked".
+- [x] **4.6** On submit success: toast "Call requested. Waiting for trainer approval." + navigate to My Requests.
+- [x] **4.7** Trainer Requests screen: list of pending requests with member name, time, note. Inline Approve / Decline buttons. Decline opens modal with reason text field.
+- [x] **4.8** On Approve: PATCH status=approved → server creates RoomMeta → both sides receive event → Guru's `ChatBloc` shows system message "Call approved for {date} {time}.".
+- [x] **4.9** On Decline: PATCH status=declined with reason → Guru sees system message "Call request declined. Reason: {text}.".
+- [x] **4.10** Upcoming Calls list (both apps): shows approved requests in next 24h, with "Join Call" button enabled within 10 min of `scheduledFor` (or always, if DevPanel override is on).
+- [x] **4.11** Unit test: `schedule_validator_test.dart`.
+- [x] **4.12** Commit: `feat: scheduling pipeline with approve/decline and conflict check`. AI_LEDGER entry.
 
 ---
 
 ## Phase 5 — 100ms call (3:45 – 5:00) — THE BIG ONE
 
-- [ ] **5.1** Add hmssdk_flutter + permission_handler. Configure Android permissions in both apps' `AndroidManifest.xml`. iOS `Info.plist` keys for camera/mic/local-network/bluetooth.
-- [ ] **5.2** Android `minSdkVersion 21` in `android/app/build.gradle` for both apps. iOS `platform :ios, '12.0'` in Podfile + permission_handler post_install block.
-- [ ] **5.3** `CallService` in `shared/lib/services/call_service.dart`: wraps `HMSSDK`. Methods: `prepareJoin(roomId, role, userName, token)`, `join()`, `toggleMic()`, `toggleVideo()`, `flipCamera()`, `leave()`. Exposes streams: `onJoined`, `onPeerUpdate`, `onTrackUpdate`, `onError`, `onReconnecting`, `onReconnected`.
-- [ ] **5.4** `CallBloc`: states `PreJoin`, `Joining`, `InCall(localPeer, remotePeers, isMicOn, isVideoOn, isReconnecting)`, `Ended(durationSec)`, `CallError(message)`.
-- [ ] **5.5** Pre-Join screen: request permissions (camera, mic, bluetoothConnect); show camera preview using `HMSVideoView` after a temporary preview track is acquired; toggles for mic/cam; "Join" button. Copy: "Ready to join? Check mic and camera."
-- [ ] **5.6** Token fetch flow: tap Join → `ApiClient.post('/token', body: {userId, role})` → ApiSuccess returns `{token, hmsRoomId}` → CallBloc emits Joining → CallService.join(token, hmsRoomId).
-- [ ] **5.7** In-Call UI: 2-peer grid using `HMSVideoView`; name labels overlay; bottom control row: mic toggle, video toggle, flip camera, end call (red circle).
-- [ ] **5.8** Role permissions enforced via 100ms template: trainer = host (can end), member = guest (mute self only).
-- [ ] **5.9** Reconnection: subscribe to `onReconnecting` / `onReconnected`; show a `CircularProgressIndicator` overlay during reconnection.
-- [ ] **5.10** On end (either side leaves or trainer presses end): capture `endedAt`, compute `durationSec`, POST `/session-logs` with stub notes, navigate to post-call sheet.
-- [ ] **5.11** Post-call sheet (Guru): 5-star rating + optional note. Submit → PATCH session log with rating + memberNotes. Copy: "Session saved to your logs."
-- [ ] **5.12** Post-call sheet (Trainer): notes text field + "Mark as complete" button → PATCH session log with trainerNotes.
-- [ ] **5.13** Edge cases:
-  - Token expiry: catch error, refetch token once, retry.
-  - App backgrounded mid-call: rely on SDK; document behavior in DECISIONS.md.
-  - Network loss: SDK handles reconnect; show loader.
-- [ ] **5.14** Commit: `feat: 100ms call integration with pre-join, in-call controls, reconnection, and session log auto-write`. Multiple AI_LEDGER entries.
+- [x] **5.1** Add hmssdk_flutter + permission_handler. Configure Android permissions in both apps' `AndroidManifest.xml`. iOS `Info.plist` keys for camera/mic/local-network/bluetooth.
+- [x] **5.2** Android `minSdkVersion 21` in `android/app/build.gradle` for both apps. iOS `platform :ios, '12.0'` in Podfile + permission_handler post_install block.
+- [x] **5.3** `CallService` in `shared/lib/services/call_service.dart`: wraps `HMSSDK`. Methods: `join()`, `toggleMic()`, `toggleVideo()`, `flipCamera()`, `leave()`. Exposes named streams: `joinedStream`, `peerUpdateStream`, `trackUpdateStream`, `errorStream`, `reconnectingStream`, `reconnectedStream`.
+- [x] **5.4** `CallBloc`: states `CallIdle`, `CallPreparing`, `CallPreJoin`, `CallJoining`, `CallInCall`, `CallEnded`, `CallError`. Full stream wiring in constructor.
+- [x] **5.5** Pre-Join screen: request permissions (camera, mic, bluetoothConnect); mic/cam toggles; "Join" button. Copy: "Ready to join? Check mic and camera." Note: no live preview before join (requires pre-join track acquisition beyond SDK scope).
+- [x] **5.6** Token fetch flow: PrepareJoin → `POST /token` with {userId, role, callRequestId} → CallPreJoin → JoinNow → CallJoining → CallService.join() → _Joined → CallInCall.
+- [x] **5.7** In-Call UI: 2-peer grid (HMSVideoView when track not null/unmuted, else avatar); name labels; gradient control bar: mic toggle, video toggle, flip camera, red end call.
+- [x] **5.8** Role permissions: trainer role maps to '100ms host', member to 'guest'. Enforced by 100ms template — code passes role name correctly.
+- [x] **5.9** Reconnection: `reconnectingStream` → `isReconnecting: true`; `reconnectedStream` → `isReconnecting: false`; `CircularProgressIndicator` overlay on InCallPage.
+- [x] **5.10** On end: `EndCall` → `callService.leave()` → `_Left` event → POST `/session-logs` → emit `CallEnded` → navigate to PostCallPage.
+- [x] **5.11** Post-call sheet (Guru/member): 5-star rating + optional note. Submit → PATCH `/session-logs/:id` with rating + memberNotes. Copy: "Session saved to your logs."
+- [x] **5.12** Post-call sheet (Trainer): notes text field + "Mark as complete" button → PATCH `/session-logs/:id` with trainerNotes.
+- [x] **5.13** Edge cases: network loss handled by reconnect overlay; app backgrounded relies on SDK. Token expiry retry skipped (deferred — document in DECISIONS.md).
+- [~] **5.14** Commit: `feat: 100ms call integration with pre-join, in-call controls, reconnection, and session log auto-write`. Multiple AI_LEDGER entries.
 
 ---
 

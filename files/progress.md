@@ -14,6 +14,35 @@
 
 ---
 
+## 2026-05-22 17:00 — Phase 5 complete: 100ms call integration
+
+- Platform configs: Android (14 permissions, minSdk=21 in both apps), iOS (NSCamera/Microphone/LocalNetwork/Bluetooth usage keys, platform :ios, '12.0', permission_handler GCC_PREPROCESSOR_DEFINITIONS in both Podfiles)
+- CallService: HMSSDK wrapper, implements HMSUpdateListener. Named streams (joinedStream, peerUpdateStream, trackUpdateStream, etc.) to avoid naming conflict with interface methods. Uses toggleMicMuteState()/toggleCameraMuteState() (deprecated switchAudio/switchVideo replaced). ensureCallPermissions() top-level function for platform-conditional permission requests.
+- CallBloc: sealed events/states with full state machine. Pre-join context stashed in nullable fields during CallJoining (state has no data) to survive the _Joined callback. HMSVideoTrack subtype check before casting in _onTrackUpdated.
+- PreJoinPage: BlocProvider creates CallBloc + dispatches PrepareJoin. BlocListener pushes InCallPage via BlocProvider.value (shared bloc instance) + pushReplacement. Mic/cam toggle buttons with color feedback.
+- InCallPage: vertical 2-peer grid (remote top, local bottom). HMSVideoView with setMirror:true for local. CircleAvatar fallback when track null or muted. Gradient control bar. Reconnecting overlay on isReconnecting.
+- PostCallPage: role-aware (userId==trainerId). Member: 5-star + optional note → PATCH memberNotes+rating. Trainer: notes + "Mark as complete" → PATCH trainerNotes. Skip path sets _submitted=true. "Session saved to your logs." on done screen.
+- Both Join buttons wired: my_requests_page.dart (member → PreJoinPage with role=member), requests_screen.dart (trainer → PreJoinPage with role=trainer).
+- Exports: services.dart adds call_service.dart; wtf_shared.dart adds call bloc + 3 presentation pages.
+- AI_LEDGER.md: entries 7–10 added (CallBloc, PreJoinPage, InCallPage, PostCallPage). Total entries: 10.
+- Diagnostics: unused import (user.dart in post_call_page), unnecessary cast in pre_join_page, both fixed. No errors remaining.
+- Known limitation: no live camera preview on PreJoinPage before join (would require pre-join track from SDK outside of a room join). Documented.
+- Files: shared/lib/services/call_service.dart, shared/lib/features/call/**, guru_app/android/**, guru_app/ios/**, trainer_app/android/**, trainer_app/ios/**, shared/lib/features/schedule/presentation/my_requests_page.dart, shared/lib/features/requests/presentation/requests_screen.dart, shared/lib/services/services.dart, shared/lib/wtf_shared.dart, files/task.md, files/progress.md, AI_LEDGER.md
+- Next: Phase 6 — Sessions list + DevPanel + polish
+
+## 2026-05-22 16:00 — Phase 4 complete (retroactive entry)
+
+- ScheduleService: POST /call-requests, PATCH /call-requests/:id
+- ScheduleBloc (Guru): LoadSlots, SelectSlot, SubmitRequest; conflict check via GET /call-requests before submit
+- Schedule screen: 3-day date chip row + 30-min slot chips + note TextField (maxLength:140) + "Request Call" CTA
+- Validation: past slot inline error; slot already booked error on conflict
+- My Requests page (Guru): lists all requests sorted by scheduledFor desc; _StatusChip per status; "Join Call" button within 10min window
+- RequestsBloc + RequestsScreen (Trainer): pending list with Approve/Decline inline; _DeclineSheet modal; Upcoming Calls list with "Join" button
+- Approve/Decline: PATCH call-request; server emits system message into chat
+- schedule_validator_test.dart: past slot + conflict detection unit tests
+- Files: shared/lib/features/schedule/**, shared/lib/features/requests/**
+- Commit: feat: scheduling pipeline with approve/decline and conflict check
+
 ## 2026-05-22 14:30 — Phase 3 complete: real-time chat
 
 - ChatService: 1.5s polling of GET /messages?since=, exposes Stream<Message> for ChatBloc subscription

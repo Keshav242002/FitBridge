@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../models/call_request.dart';
+import '../../../models/user.dart';
 import '../../../services/api_client.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/schedule_service.dart';
+import '../../call/presentation/pre_join_page.dart';
 import '../bloc/requests_bloc.dart';
 import '../bloc/requests_event.dart';
 import '../bloc/requests_state.dart';
@@ -218,7 +220,19 @@ class _UpcomingCard extends StatelessWidget {
             ),
             if (canJoin)
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  final user = AuthService.currentUser()!;
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => PreJoinPage(
+                      callRequestId: request.id,
+                      userId: user.id,
+                      userName: user.name,
+                      role: UserRole.trainer.name,
+                      memberId: request.memberId,
+                      trainerId: user.id,
+                    ),
+                  ));
+                },
                 icon: const Icon(Icons.videocam, size: 18),
                 label: const Text('Join'),
               )
